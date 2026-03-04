@@ -1,0 +1,31 @@
+[project]
+name = "nlp-project"
+version = "0.1.0"
+description = "AdMIRe 2.0 Subtask 1 - YZV405E Term Project"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "transformers",
+    "accelerate",
+    "scikit-learn",
+    "pandas",
+    "numpy",
+    "datasets",
+    "pillow"
+]
+
+[tool.uv]
+# Native uv configuration space
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
+torchaudio = { index = "pytorch-cu121" }

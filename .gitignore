@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# uv & Environments
+.venv/
+env/
+venv/
+
+# Machine Learning / Data
+data/raw/
+data/processed/
+*.jsonl
+*.csv
+*.zip
+*.pt
+*.pth
+*.safetensors
+*.bin
+
+# IDEs (Cursor / VS Code)
+.vscode/
+.idea/
+*.swp
+
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+*~
