@@ -25,6 +25,13 @@ data/processed/
 .idea/
 *.swp
 
+# Trained model checkpoints
+*.joblib
+
+# Internal AI context/planning files (local only)
+CLAUDE.md
+PLAN.md
+
 # OS Files
 .DS_Store
 .AppleDouble

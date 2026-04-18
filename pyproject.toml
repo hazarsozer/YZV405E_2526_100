@@ -14,7 +14,20 @@ dependencies = [
     "pandas",
     "numpy",
     "datasets",
-    "pillow"
+    "pillow",
+    "pytest",
+    "pytest-cov",
+    "joblib",
+    "bitsandbytes",
+    "sentencepiece",
+    "protobuf",
+    "pyarrow",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: fast, no I/O beyond fixtures",
+    "integration: touches real files or network",
 ]
 
 [tool.uv]
