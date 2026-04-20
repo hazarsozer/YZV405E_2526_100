@@ -64,3 +64,49 @@ class EmbeddingCache:
         if not path.exists():
             return pd.DataFrame(columns=["key", "embedding"])
         return pd.read_parquet(path)
+
+
+class TextCache:
+    """Parquet-backed cache for text outputs (translations, paraphrases).
+
+    Same interface as EmbeddingCache but stores plain strings.
+    """
+
+    def __init__(self, cache_dir: Path) -> None:
+        self._cache_dir = cache_dir
+        self._cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def get_batch(self, namespace: str, keys: list[str]) -> dict[str, str]:
+        """Return cached strings for *keys* that exist in cache."""
+        df = self._load_df(namespace)
+        if df.empty:
+            return {}
+        found = df[df["key"].isin(keys)]
+        return {row["key"]: row["value"] for _, row in found.iterrows()}
+
+    def set_batch(self, namespace: str, data: dict[str, str]) -> None:
+        """Upsert *data* into the cache for *namespace*."""
+        if not data:
+            return
+        existing = self._load_df(namespace)
+        new_rows = pd.DataFrame(
+            [{"key": k, "value": v} for k, v in data.items()]
+        )
+        merged = pd.concat(
+            [existing[~existing["key"].isin(data)], new_rows], ignore_index=True
+        )
+        merged.to_parquet(self._path(namespace), index=False)
+
+    @staticmethod
+    def make_key(*parts: str) -> str:
+        return sha256_string(*parts)
+
+    def _path(self, namespace: str) -> Path:
+        safe = namespace.replace("/", "__").replace("\\", "__")
+        return self._cache_dir / f"{safe}.parquet"
+
+    def _load_df(self, namespace: str) -> pd.DataFrame:
+        path = self._path(namespace)
+        if not path.exists():
+            return pd.DataFrame(columns=["key", "value"])
+        return pd.read_parquet(path)

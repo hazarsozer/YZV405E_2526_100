@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from src.utils.cache import EmbeddingCache
+from src.utils.cache import EmbeddingCache, TextCache
 
 
 @pytest.fixture()
@@ -77,3 +77,58 @@ class TestEmbeddingCache:
         cache.set_batch("model", {})
         result = cache.get_batch("model", ["k"])
         assert result == {}
+
+
+class TestTextCache:
+    @pytest.fixture()
+    def cache(self, tmp_path: Path) -> TextCache:
+        return TextCache(tmp_path / "text_cache")
+
+    def test_cache_dir_created(self, tmp_path: Path):
+        TextCache(tmp_path / "deep" / "path")
+        assert (tmp_path / "deep" / "path").exists()
+
+    def test_get_missing_returns_empty(self, cache: TextCache):
+        assert cache.get_batch("ns", ["nope"]) == {}
+
+    def test_set_and_get_roundtrip(self, cache: TextCache):
+        cache.set_batch("translations", {"k1": "Hello world"})
+        result = cache.get_batch("translations", ["k1"])
+        assert result == {"k1": "Hello world"}
+
+    def test_get_batch_partial_hit(self, cache: TextCache):
+        cache.set_batch("ns", {"exists": "value"})
+        result = cache.get_batch("ns", ["exists", "missing"])
+        assert "exists" in result
+        assert "missing" not in result
+
+    def test_set_batch_multiple(self, cache: TextCache):
+        data = {f"k{i}": f"text {i}" for i in range(5)}
+        cache.set_batch("ns", data)
+        result = cache.get_batch("ns", list(data.keys()))
+        assert result == data
+
+    def test_upsert_overwrites_existing_key(self, cache: TextCache):
+        cache.set_batch("ns", {"k": "old"})
+        cache.set_batch("ns", {"k": "new"})
+        result = cache.get_batch("ns", ["k"])
+        assert result["k"] == "new"
+
+    def test_different_namespaces_isolated(self, cache: TextCache):
+        cache.set_batch("translations", {"k": "hello"})
+        assert cache.get_batch("paraphrases", ["k"]) == {}
+
+    def test_namespace_with_slash(self, cache: TextCache):
+        cache.set_batch("facebook/nllb-200", {"k": "text"})
+        result = cache.get_batch("facebook/nllb-200", ["k"])
+        assert result["k"] == "text"
+
+    def test_make_key_deterministic(self):
+        assert TextCache.make_key("a", "b") == TextCache.make_key("a", "b")
+
+    def test_make_key_order_sensitive(self):
+        assert TextCache.make_key("a", "b") != TextCache.make_key("b", "a")
+
+    def test_set_empty_dict_is_noop(self, cache: TextCache):
+        cache.set_batch("ns", {})
+        assert cache.get_batch("ns", ["k"]) == {}
