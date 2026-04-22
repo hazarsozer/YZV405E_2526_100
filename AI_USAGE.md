@@ -64,4 +64,24 @@ Used Claude Code (CLI) as a coding assistant throughout this session.
 
 ---
 
+## 2026-04-22 — LR sense classifier + train script (Phase 3)
+
+Used Claude Code (CLI) as a coding assistant throughout this session.
+
+**Decisions I made (with teammates)**:
+- Use CalibratedClassifierCV with isotonic regression (cv=5) on top of LogisticRegression so the output is a proper probability, not a raw score
+- Train only on EN and PT-BR splits (the two supervised languages) — all other languages are blind test
+- Cache BGE-M3 embeddings to disk before training so the GPU step is only done once
+- Thresholds: P(idiomatic) > 0.75 → idiomatic branch, < 0.25 → literal branch, otherwise fallback to cosine similarity
+- Pin Python to 3.12 and disable the CUDA PyTorch index for macOS development (MPS wheels come from PyPI); re-enable CUDA index on the Linux GPU machine
+
+**What I used Claude for**:
+- I specced the classifier interface (fit/predict_proba_idiomatic/save/from_path), then had Claude implement `src/models/sense_classifier.py`
+- Claude wrote `scripts/train_lr.py` with argparse, EmbeddingCache integration, and logging
+- Claude wrote the test suite (15 tests, no GPU required)
+- Fixed a uv/Python version conflict: system Python 3.14 is incompatible with torch wheels, pinned to 3.12 via `.python-version`
+- I reviewed all code and tests before committing
+
+15 new tests added (92 total), all passing.
+
 <!-- continue logging sessions below -->
