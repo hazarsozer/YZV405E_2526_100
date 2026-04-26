@@ -19,6 +19,7 @@ class SigLIP2Encoder:
 
     MODEL_ID = "google/siglip2-so400m-patch16-512"
     EMBED_DIM = 1152
+    MAX_TEXT_LENGTH = 256
 
     def __init__(self, device: str = "cuda") -> None:
         self._device = device
@@ -68,6 +69,30 @@ class SigLIP2Encoder:
                 images=chunk, return_tensors="pt", padding=True
             ).to(self._device)
             features = self._model.get_image_features(**inputs)
+            embs = features.float().cpu().numpy()
+            batches.append(_l2_normalize(embs))
+        return np.concatenate(batches, axis=0)
+
+    @torch.inference_mode()
+    def encode_text(self, texts: list[str], batch_size: int = 32) -> np.ndarray:
+        """Return (N, EMBED_DIM) float32 L2-normalised text embeddings.
+
+        Text is encoded in the same shared space as images, enabling
+        direct cosine-similarity comparison for ranking.
+        """
+        if self._model is None or self._processor is None:
+            raise RuntimeError("Call load() or use as a context manager first.")
+        batches: list[np.ndarray] = []
+        for i in range(0, len(texts), batch_size):
+            chunk = texts[i : i + batch_size]
+            inputs = self._processor(
+                text=chunk,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self.MAX_TEXT_LENGTH,
+            ).to(self._device)
+            features = self._model.get_text_features(**inputs)
             embs = features.float().cpu().numpy()
             batches.append(_l2_normalize(embs))
         return np.concatenate(batches, axis=0)

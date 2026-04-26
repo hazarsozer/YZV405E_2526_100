@@ -85,3 +85,26 @@ Used Claude Code (CLI) as a coding assistant throughout this session.
 15 new tests added (92 total), all passing.
 
 <!-- continue logging sessions below -->
+
+## 2026-04-26 — Ranker, eval, pipeline, inference script (Phase 4)
+
+Used Antigravity (Gemini) as a coding assistant throughout this session.
+
+**Decisions I made (with teammates)**:
+- Rank images using SigLIP2's shared text–image embedding space (not BGE-M3, which is text-only and lives in a different space)
+- Added `encode_text()` to `SigLIP2Encoder` so both images and text are encoded in the same 1152-d space for cosine similarity ranking
+- Idiomatic branch: `scores = sim_paraphrased - 0.3 * sim_original` to penalise literal visual overlap
+- Literal branch: `scores = sim_original`
+- Uncertain (bypass): `scores = sim_paraphrased` — no penalty applied
+- Evaluation: standard nDCG with position-based relevance (top gold image gets relevance N, next N-1, …)
+- Pipeline loads/unloads models sequentially to fit in VRAM (only one heavy model at a time)
+
+**What I used the AI tool for**:
+- I described the heuristic ranking logic and the 3-branch decision rules, then had the AI implement `src/models/ranker.py`
+- I specced the evaluation interface (DCG/nDCG/top-1 + per-language aggregation), then had the AI implement `src/eval.py`
+- I described the pipeline phases and memory management strategy, then had the AI implement `src/pipeline.py` and `scripts/run_inference.py`
+- The AI wrote the test suites for all new modules (ranker: 12, eval: 19, pipeline: 4)
+- Reviewed all code and tests before committing
+
+35 new tests added (163 total), all passing (2 pre-existing integration tests fail because raw image data is not on this machine).
+
