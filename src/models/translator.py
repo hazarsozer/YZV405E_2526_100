@@ -4,6 +4,9 @@ import numpy as np
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
+# Main branch only has pytorch_model.bin; safetensors available via this PR.
+_NLLB200_SAFETENSORS_REVISION = "refs/pr/45"
+
 # FLORES-200 codes used by NLLB-200
 LANG_CODE_TO_FLORES: dict[str, str] = {
     "ZH": "zho_Hans",
@@ -54,10 +57,15 @@ class NLLB200Translator:
     # ------------------------------------------------------------------
 
     def load(self) -> None:
-        self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_ID)
+        dtype = torch.float16 if self._device == "cuda" else torch.float32
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            self.MODEL_ID, revision=_NLLB200_SAFETENSORS_REVISION
+        )
         self._model = (
             AutoModelForSeq2SeqLM.from_pretrained(
-                self.MODEL_ID, torch_dtype=torch.float16
+                self.MODEL_ID,
+                revision=_NLLB200_SAFETENSORS_REVISION,
+                dtype=dtype,
             )
             .to(self._device)
             .eval()

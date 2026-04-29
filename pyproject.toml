@@ -35,12 +35,12 @@ markers = [
 # On Linux (GPU training machine) switch to the CUDA index manually:
 #   uv add torch --index pytorch-cu121 (or edit sources below and uncomment)
 
-# [[tool.uv.index]]
-# name = "pytorch-cu121"
-# url = "https://download.pytorch.org/whl/cu121"
-# explicit = true
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
 
-# [tool.uv.sources]
-# torch = { index = "pytorch-cu121" }
-# torchvision = { index = "pytorch-cu121" }
-# torchaudio = { index = "pytorch-cu121" }
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
+torchaudio = { index = "pytorch-cu121" }

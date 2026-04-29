@@ -2,11 +2,21 @@
 
 Usage:
     python scripts/train_lr.py \\
-        --en-tsv  data/raw/admire2_data/English/train.tsv \\
-        --ptbr-tsv data/raw/admire2_data/Portuguese-Brazil/train.tsv \\
+        --en-tsvs  data/raw/train_data/EN/train/subtask_a_train.tsv \\
+                   data/raw/train_data/EN/dev/subtask_a_dev.tsv \\
+                   data/raw/train_data/EN/test/subtask_a_test.tsv \\
+                   data/raw/train_data/EN/xeval/subtask_a_xe.tsv \\
+        --ptbr-tsvs data/raw/train_data/PT/train/subtask_a_train.tsv \\
+                    data/raw/train_data/PT/dev/subtask_a_dev.tsv \\
+                    data/raw/train_data/PT/test/subtask_a_test.tsv \\
+                    data/raw/train_data/PT/xeval/subtask_a_xp.tsv \\
+        [--data-root data/raw/admire2_data] \\
         [--output models/lr_sense_classifier.joblib] \\
         [--cache-dir data/processed] \\
-        [--device cuda]
+        [--device cpu]
+
+Pass as many TSV files per language as you have (train/dev/test/xeval).
+Duplicate sentences across splits are deduplicated automatically.
 
 The script embeds all sentences with BGE-M3 (results cached to parquet),
 fits CalibratedClassifierCV(LogisticRegression, isotonic, cv=5), and saves
@@ -16,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -28,12 +39,6 @@ from src.utils.io import sha256_string
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
-
-# Language name → code mapping for the two supervised splits
-SUPERVISED_LANGS: dict[str, str] = {
-    "English": "EN",
-    "Portuguese-Brazil": "PT-BR",
-}
 
 
 def _load_labelled_instances(
@@ -81,38 +86,48 @@ def main(args: argparse.Namespace) -> None:
     cache_dir = Path(args.cache_dir)
     device: str = args.device
 
-    # ------------------------------------------------------------------
-    # Collect labelled data from EN and PT-BR splits
-    # ------------------------------------------------------------------
-    all_sentences: list[str] = []
-    all_labels: list[str] = []
-
     repo = AdMIReRepository(
-        data_root=Path(args.en_tsv).parent.parent,
+        data_root=Path(args.data_root),
         templates_root=Path("data/submissions/templates"),
     )
 
-    splits: list[tuple[Path, str]] = []
-    if args.en_tsv:
-        splits.append((Path(args.en_tsv), "English"))
-    if args.ptbr_tsv:
-        splits.append((Path(args.ptbr_tsv), "Portuguese-Brazil"))
+    # ------------------------------------------------------------------
+    # Collect labelled data — deduplicate by sentence text
+    # ------------------------------------------------------------------
+    seen: set[str] = set()
+    all_sentences: list[str] = []
+    all_labels: list[str] = []
 
-    if not splits:
-        raise ValueError("At least one of --en-tsv or --ptbr-tsv must be provided.")
+    lang_tsvs: list[tuple[list[str], str]] = [
+        (args.en_tsvs or [], "English"),
+        (args.ptbr_tsvs or [], "Portuguese-Brazil"),
+    ]
 
-    for tsv_path, lang_name in splits:
-        if not tsv_path.exists():
-            raise FileNotFoundError(f"Training TSV not found: {tsv_path}")
-        sents, labs = _load_labelled_instances(repo, tsv_path, lang_name)
-        log.info("%s: %d labelled instances.", lang_name, len(sents))
-        all_sentences.extend(sents)
-        all_labels.extend(labs)
+    if not any(paths for paths, _ in lang_tsvs):
+        raise ValueError("Provide at least one TSV via --en-tsvs or --ptbr-tsvs.")
+
+    for tsv_paths, lang_name in lang_tsvs:
+        lang_total = 0
+        for tsv_str in tsv_paths:
+            tsv_path = Path(tsv_str)
+            if not tsv_path.exists():
+                raise FileNotFoundError(f"Training TSV not found: {tsv_path}")
+            sents, labs = _load_labelled_instances(repo, tsv_path, lang_name)
+            added = 0
+            for s, label in zip(sents, labs):
+                if s not in seen:
+                    seen.add(s)
+                    all_sentences.append(s)
+                    all_labels.append(label)
+                    added += 1
+            log.info("  %s  →  %d new instances (%d total in file)",
+                     tsv_path.name, added, len(sents))
+            lang_total += added
+        if lang_total:
+            log.info("%s: %d unique labelled instances loaded.", lang_name, lang_total)
 
     log.info("Total training instances: %d", len(all_sentences))
-    label_counts = {
-        label: all_labels.count(label) for label in set(all_labels)
-    }
+    label_counts = Counter(all_labels)
     log.info("Label distribution: %s", label_counts)
 
     # ------------------------------------------------------------------
@@ -120,9 +135,16 @@ def main(args: argparse.Namespace) -> None:
     # ------------------------------------------------------------------
     cache = EmbeddingCache(cache_dir)
     model_name = BGEM3Encoder.MODEL_ID
+    keys_all = [sha256_string(s) for s in all_sentences]
+    pre_cached = cache.get_batch(model_name, keys_all)
+    missing_idx = [i for i, k in enumerate(keys_all) if k not in pre_cached]
 
-    with BGEM3Encoder(device=device) as encoder:
-        embeddings = _embed_with_cache(all_sentences, encoder, cache, model_name)
+    if missing_idx:
+        with BGEM3Encoder(device=device) as encoder:
+            embeddings = _embed_with_cache(all_sentences, encoder, cache, model_name)
+    else:
+        log.info("All embeddings already in cache — BGE-M3 not loaded.")
+        embeddings = np.stack([pre_cached[k] for k in keys_all], axis=0)
 
     log.info("Embeddings shape: %s", embeddings.shape)
 
@@ -135,22 +157,33 @@ def main(args: argparse.Namespace) -> None:
     clf.save(output_path)
     log.info("Saved to %s", output_path)
 
-    # Quick sanity check
     probas = clf.predict_proba_idiomatic(embeddings[:5])
     log.info("P(idiomatic) for first 5 training samples: %s", probas.round(3))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--en-tsv",
-        default=None,
-        help="Path to the English labelled training TSV.",
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--ptbr-tsv",
-        default=None,
-        help="Path to the PT-BR labelled training TSV.",
+        "--en-tsvs",
+        nargs="*",
+        default=[],
+        metavar="TSV",
+        help="One or more English labelled TSV files (train/dev/test/xeval).",
+    )
+    parser.add_argument(
+        "--ptbr-tsvs",
+        nargs="*",
+        default=[],
+        metavar="TSV",
+        help="One or more PT-BR labelled TSV files (train/dev/test/xeval).",
+    )
+    parser.add_argument(
+        "--data-root",
+        default="data/raw/admire2_data",
+        help="Root directory of the AdMIRe 2 image data (default: data/raw/admire2_data).",
     )
     parser.add_argument(
         "--output",

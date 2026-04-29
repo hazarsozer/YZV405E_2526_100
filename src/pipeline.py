@@ -262,15 +262,20 @@ class AdMIRePipeline:
         miss_idx = [i for i, k in enumerate(keys) if k not in cached]
 
         if miss_idx:
-            logger.info("Paraphrasing %d sentences with Phi-3.5 …", len(miss_idx))
+            total = len(miss_idx)
+            logger.info("Paraphrasing %d sentences with Phi-3.5 …", total)
+            _CHECKPOINT_EVERY = 50
             with Phi35Paraphraser(device=self.cfg.device) as para:
                 new_cache: dict[str, str] = {}
-                for mi in miss_idx:
+                for done, mi in enumerate(miss_idx, 1):
                     _, inst = instances[mi]
                     result = para.paraphrase(translated[mi], inst.compound)
                     cached[keys[mi]] = result
                     new_cache[keys[mi]] = result
-                self._text_cache.set_batch(cache_ns, new_cache)
+                    if done % _CHECKPOINT_EVERY == 0 or done == total:
+                        self._text_cache.set_batch(cache_ns, new_cache)
+                        new_cache = {}
+                        logger.info("  paraphrased %d / %d", done, total)
         else:
             logger.info("All paraphrases found in cache.")
 
@@ -329,19 +334,26 @@ class AdMIRePipeline:
         logger.info("=== Phase 4: SigLIP2 encoding ===")
         model_name = SigLIP2Encoder.MODEL_ID
 
-        # --- Collect all unique images ---
+        # --- Collect all unique images; store per-instance key lists ---
         image_keys: dict[str, Path] = {}  # cache_key → path
+        img_keys_per_instance: list[list[str]] = []
         for _, inst in instances:
-            for img in inst.images:
-                ik = sha256_string(str(img.absolute_path))
+            inst_keys = [sha256_string(str(img.absolute_path)) for img in inst.images]
+            img_keys_per_instance.append(inst_keys)
+            for ik, img in zip(inst_keys, inst.images):
                 image_keys[ik] = img.absolute_path
 
-        # --- Collect all unique texts ---
+        # --- Collect all unique texts; store per-instance key pairs ---
         text_set: dict[str, str] = {}  # cache_key → text
+        orig_keys: list[str] = []
+        para_keys: list[str] = []
         for i in range(len(instances)):
-            for txt in (translated[i], paraphrased[i]):
-                tk = sha256_string("text", txt)
-                text_set[tk] = txt
+            tk_orig = sha256_string("text", translated[i])
+            tk_para = sha256_string("text", paraphrased[i])
+            orig_keys.append(tk_orig)
+            para_keys.append(tk_para)
+            text_set[tk_orig] = translated[i]
+            text_set[tk_para] = paraphrased[i]
 
         # --- Check caches ---
         all_keys = list(image_keys.keys()) + list(text_set.keys())
@@ -387,16 +399,10 @@ class AdMIRePipeline:
         txt_orig_list: list[np.ndarray] = []
         txt_para_list: list[np.ndarray] = []
 
-        for i, (_, inst) in enumerate(instances):
-            ie = np.stack([
-                cached[sha256_string(str(img.absolute_path))]
-                for img in inst.images
-            ], axis=0)
+        for i in range(len(instances)):
+            ie = np.stack([cached[k] for k in img_keys_per_instance[i]], axis=0)
             img_embs_list.append(ie)
-
-            tk_orig = sha256_string("text", translated[i])
-            tk_para = sha256_string("text", paraphrased[i])
-            txt_orig_list.append(cached[tk_orig])
-            txt_para_list.append(cached[tk_para])
+            txt_orig_list.append(cached[orig_keys[i]])
+            txt_para_list.append(cached[para_keys[i]])
 
         return img_embs_list, txt_orig_list, txt_para_list

@@ -30,8 +30,8 @@ class EmbeddingCache:
             return {}
         found = df[df["key"].isin(keys)]
         return {
-            row["key"]: np.array(row["embedding"], dtype=np.float32)
-            for _, row in found.iterrows()
+            k: np.array(v, dtype=np.float32)
+            for k, v in zip(found["key"], found["embedding"])
         }
 
     def set_batch(self, model_name: str, data: dict[str, np.ndarray]) -> None:
@@ -82,7 +82,7 @@ class TextCache:
         if df.empty:
             return {}
         found = df[df["key"].isin(keys)]
-        return {row["key"]: row["value"] for _, row in found.iterrows()}
+        return dict(zip(found["key"], found["value"]))
 
     def set_batch(self, namespace: str, data: dict[str, str]) -> None:
         """Upsert *data* into the cache for *namespace*."""

@@ -9,6 +9,7 @@ import pandas as pd
 SentenceType = Literal["idiomatic", "literal"]
 
 LANG_NAME_TO_CODE: dict[str, str] = {
+    "English": "EN",
     "Chinese": "ZH",
     "Georgian": "KA",
     "Greek": "EL",
@@ -89,6 +90,7 @@ class AdMIReRepository:
         return {
             LANG_NAME_TO_CODE[lang]: self.load_submission_template(lang)
             for lang in LANG_NAME_TO_CODE
+            if (self._templates_root / f"submission_{lang}.tsv").exists()
         }
 
     def _load_tsv(

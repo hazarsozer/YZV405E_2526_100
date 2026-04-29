@@ -38,6 +38,7 @@ class LRSenseClassifier:
     def __init__(self) -> None:
         self._clf: CalibratedClassifierCV | None = None
         self._label_encoder: LabelEncoder = LabelEncoder()
+        self._idiomatic_col: int | None = None
 
     # ------------------------------------------------------------------
     # Training
@@ -60,6 +61,7 @@ class LRSenseClassifier:
             estimator=base, method=CALIBRATION_METHOD, cv=CALIBRATION_CV
         )
         self._clf.fit(embeddings, label_array)
+        self._idiomatic_col = self._resolve_idiomatic_col()
 
     # ------------------------------------------------------------------
     # Inference
@@ -70,18 +72,20 @@ class LRSenseClassifier:
 
         Raises RuntimeError if the model has not been fitted yet.
         """
-        if self._clf is None:
+        if self._clf is None or self._idiomatic_col is None:
             raise RuntimeError(
                 "Classifier is not fitted. Call fit() or load from_path() first."
             )
         proba = self._clf.predict_proba(embeddings)
+        return proba[:, self._idiomatic_col].astype(np.float32)
+
+    def _resolve_idiomatic_col(self) -> int:
         # sklearn labels are sorted lexicographically: "idiomatic" < "literal"
         # so column 0 = P(idiomatic) when both classes are present
         classes: list[str] = list(
-            self._label_encoder.inverse_transform(self._clf.classes_)
+            self._label_encoder.inverse_transform(self._clf.classes_)  # type: ignore[union-attr]
         )
-        idiomatic_col = classes.index(IDIOMATIC_LABEL)
-        return proba[:, idiomatic_col].astype(np.float32)
+        return classes.index(IDIOMATIC_LABEL)
 
     # ------------------------------------------------------------------
     # Persistence
@@ -105,4 +109,5 @@ class LRSenseClassifier:
         instance = cls()
         instance._clf = payload["clf"]
         instance._label_encoder = payload["label_encoder"]
+        instance._idiomatic_col = instance._resolve_idiomatic_col()
         return instance

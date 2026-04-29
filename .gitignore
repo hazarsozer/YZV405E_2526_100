@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 env/
 venv/
+uv.lock
 
 # Machine Learning / Data
 data/raw/
@@ -20,13 +21,19 @@ data/processed/
 *.safetensors
 *.bin
 
+# HuggingFace model cache
+.hf_cache/
+
+# Trained model checkpoints
+models/
+
+# Submission outputs
+data/submissions/output/
+
 # IDEs (Cursor / VS Code)
 .vscode/
 .idea/
 *.swp
-
-# Trained model checkpoints
-*.joblib
 
 # Internal AI context/planning files (local only)
 CLAUDE.md
@@ -36,4 +43,5 @@ PLAN.md
 .DS_Store
 .AppleDouble
 .LSOverride
+Thumbs.db
 *~

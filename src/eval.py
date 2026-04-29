@@ -11,6 +11,7 @@ Metrics
 """
 from __future__ import annotations
 
+import functools
 import math
 from dataclasses import dataclass, field
 
@@ -51,7 +52,12 @@ def dcg(predicted: list[str], gold: list[str]) -> float:
 
 def ideal_dcg(gold: list[str]) -> float:
     """DCG of the perfect ranking (= IDCG)."""
-    return dcg(gold, gold)
+    return _idcg_for_n(len(gold))
+
+
+@functools.lru_cache(maxsize=16)
+def _idcg_for_n(n: int) -> float:
+    return sum((n - i) / math.log2(i + 2) for i in range(n))
 
 
 def ndcg(predicted: list[str], gold: list[str]) -> float:

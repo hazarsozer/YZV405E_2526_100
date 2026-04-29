@@ -35,7 +35,7 @@ def cosine_similarity(
     Returns shape (N,).
     """
     # Guard against un-normalised inputs
-    t = text_emb / max(np.linalg.norm(text_emb), 1e-8)
+    t = text_emb / np.maximum(np.linalg.norm(text_emb), 1e-8)
     norms = np.linalg.norm(image_embs, axis=1, keepdims=True)
     imgs = image_embs / np.maximum(norms, 1e-8)
     return (imgs @ t).astype(np.float32)

@@ -9,6 +9,14 @@ from transformers import AutoModel, AutoProcessor, AutoTokenizer
 if TYPE_CHECKING:
     from PIL import Image as PILImage
 
+# BGE-M3 main branch only has pytorch_model.bin; this PR adds safetensors.
+_BGEM3_SAFETENSORS_REVISION = "refs/pr/130"
+
+
+def _infer_dtype(device: str) -> torch.dtype:
+    """float16 on CUDA (faster, less VRAM); float32 everywhere else (cpu, mps)."""
+    return torch.float16 if device == "cuda" else torch.float32
+
 
 class SigLIP2Encoder:
     """Frozen SigLIP2-SO400M vision encoder.
@@ -33,7 +41,7 @@ class SigLIP2Encoder:
     def load(self) -> None:
         self._processor = AutoProcessor.from_pretrained(self.MODEL_ID)
         self._model = (
-            AutoModel.from_pretrained(self.MODEL_ID, torch_dtype=torch.float16)
+            AutoModel.from_pretrained(self.MODEL_ID, dtype=_infer_dtype(self._device))
             .to(self._device)
             .eval()
         )
@@ -69,7 +77,7 @@ class SigLIP2Encoder:
                 images=chunk, return_tensors="pt", padding=True
             ).to(self._device)
             features = self._model.get_image_features(**inputs)
-            embs = features.float().cpu().numpy()
+            embs = features.cpu().float().numpy()
             batches.append(_l2_normalize(embs))
         return np.concatenate(batches, axis=0)
 
@@ -93,7 +101,7 @@ class SigLIP2Encoder:
                 max_length=self.MAX_TEXT_LENGTH,
             ).to(self._device)
             features = self._model.get_text_features(**inputs)
-            embs = features.float().cpu().numpy()
+            embs = features.cpu().float().numpy()
             batches.append(_l2_normalize(embs))
         return np.concatenate(batches, axis=0)
 
@@ -119,9 +127,15 @@ class BGEM3Encoder:
     # ------------------------------------------------------------------
 
     def load(self) -> None:
-        self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_ID)
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            self.MODEL_ID, revision=_BGEM3_SAFETENSORS_REVISION
+        )
         self._model = (
-            AutoModel.from_pretrained(self.MODEL_ID, torch_dtype=torch.float16)
+            AutoModel.from_pretrained(
+                self.MODEL_ID,
+                revision=_BGEM3_SAFETENSORS_REVISION,
+                dtype=_infer_dtype(self._device),
+            )
             .to(self._device)
             .eval()
         )
@@ -160,7 +174,7 @@ class BGEM3Encoder:
             ).to(self._device)
             outputs = self._model(**inputs)
             # CLS token as dense embedding (BGE-M3 convention)
-            cls = outputs.last_hidden_state[:, 0, :].float().cpu().numpy()
+            cls = outputs.last_hidden_state[:, 0, :].cpu().float().numpy()
             batches.append(_l2_normalize(cls))
         return np.concatenate(batches, axis=0)
 
