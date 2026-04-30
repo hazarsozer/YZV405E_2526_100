@@ -27,7 +27,7 @@ class SigLIP2Encoder:
 
     MODEL_ID = "google/siglip2-so400m-patch16-512"
     EMBED_DIM = 1152
-    MAX_TEXT_LENGTH = 256
+    MAX_TEXT_LENGTH = 64  # SigLIP2 text model max_position_embeddings
 
     def __init__(self, device: str = "cuda") -> None:
         self._device = device
