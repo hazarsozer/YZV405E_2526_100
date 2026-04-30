@@ -76,7 +76,8 @@ class SigLIP2Encoder:
             inputs = self._processor(
                 images=chunk, return_tensors="pt", padding=True
             ).to(self._device)
-            features = self._model.get_image_features(**inputs)
+            result = self._model.get_image_features(**inputs)
+            features = result if isinstance(result, torch.Tensor) else result.pooler_output
             embs = features.cpu().float().numpy()
             batches.append(_l2_normalize(embs))
         return np.concatenate(batches, axis=0)
@@ -100,7 +101,8 @@ class SigLIP2Encoder:
                 truncation=True,
                 max_length=self.MAX_TEXT_LENGTH,
             ).to(self._device)
-            features = self._model.get_text_features(**inputs)
+            result = self._model.get_text_features(**inputs)
+            features = result if isinstance(result, torch.Tensor) else result.pooler_output
             embs = features.cpu().float().numpy()
             batches.append(_l2_normalize(embs))
         return np.concatenate(batches, axis=0)
