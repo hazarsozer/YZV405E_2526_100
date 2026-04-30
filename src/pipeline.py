@@ -163,7 +163,7 @@ class AdMIRePipeline:
                 orders.append(order_str)
 
             df["expected_order"] = orders
-            out_path = self.cfg.output_dir / f"submission_{lang_name}.tsv"
+            out_path = self.cfg.output_dir / f"submission_{lang_code}.tsv"
             df.to_csv(out_path, sep="\t", index=False)
             paths.append(out_path)
             logger.info("Wrote %s (%d rows)", out_path.name, len(df))
