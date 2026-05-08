@@ -285,10 +285,17 @@ def main(args: argparse.Namespace) -> None:
     else:
         cap_c2_embs = cap_c1_embs  # C2 = C1 when not enriched
 
-    log.info("Loading SigLIP2 embeddings (C3) …")
-    sig_img_embs, sig_orig_embs, sig_para_embs = load_siglip2_embeddings(
-        instances, translated, paraphrased, emb_cache, args.device
-    )
+    # Determine if any weight config uses C3 before loading SigLIP2
+    _need_siglip = args.weight_grid or (args.weights[2] != 0.0)
+    if _need_siglip:
+        log.info("Loading SigLIP2 embeddings (C3) …")
+        sig_img_embs, sig_orig_embs, sig_para_embs = load_siglip2_embeddings(
+            instances, translated, paraphrased, emb_cache, args.device
+        )
+    else:
+        log.info("Skipping SigLIP2 (w3=0 for all configs).")
+        _dummy = [np.zeros(1) for _ in instances]
+        sig_img_embs, sig_orig_embs, sig_para_embs = _dummy, _dummy, _dummy
 
     log.info("Loading LR classifier …")
     clf = LRSenseClassifier.from_path(Path(args.classifier))
