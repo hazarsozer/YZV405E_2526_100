@@ -14,6 +14,21 @@ _PROMPT_TEMPLATE = (
     "Sentence: {sentence}"
 )
 
+_QWEN_SYSTEM = (
+    "You are a language expert specialising in idiomatic expressions. "
+    "When asked to rewrite a sentence, you replace the given expression with "
+    "clear, literal language that conveys exactly what it means in context. "
+    "You return only the rewritten sentence — no explanation, no quotes, no preamble."
+)
+
+_QWEN_PROMPT_TEMPLATE = (
+    'Rewrite the sentence below by replacing the expression "{compound}" with '
+    "plain English that captures its meaning in this specific context. "
+    "Return ONLY the rewritten sentence.\n\n"
+    "Sentence: {sentence}\n"
+    "Rewritten:"
+)
+
 
 class IdentityParaphraser:
     """Fallback paraphraser — returns the sentence unchanged."""

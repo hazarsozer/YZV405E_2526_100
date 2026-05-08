@@ -84,8 +84,6 @@ Used Claude Code (CLI) as a coding assistant throughout this session.
 
 15 new tests added (92 total), all passing.
 
-<!-- continue logging sessions below -->
-
 ## 2026-04-26 — Ranker, eval, pipeline, inference script (Phase 4)
 
 Used Antigravity (Gemini) as a coding assistant throughout this session.
@@ -107,4 +105,33 @@ Used Antigravity (Gemini) as a coding assistant throughout this session.
 - Reviewed all code and tests before committing
 
 35 new tests added (163 total), all passing (2 pre-existing integration tests fail because raw image data is not on this machine).
+
+---
+
+## 2026-05-07 – 2026-05-08 — Ablation submissions + systematic improvement search
+
+Used Claude Code (CLI) as a coding assistant throughout these sessions.
+
+**Decisions I made:**
+- Switch ranking from SigLIP2 text–image alignment to BGE-M3 caption matching — captions are always English, giving a cleaner signal channel than SigLIP2's text encoder on translated/idiomatic input
+- Use LR classifier (P(idiomatic) > 0.75 gate) to switch between paraphrase and original sentence as the ranking query
+- Keep Phi-3.5-mini as the paraphraser — tested Qwen2.5-7B-Instruct and got identical scores
+- Keep PT-BR in NO_OP_LANGS (skip translation) — routing through NLLB before paraphrasing hurt performance
+- Hard gate at 0.75 is optimal — soft blend and threshold sweep confirmed this
+
+**What I used Claude for:**
+- Wrote `scripts/caption_rank.py` — main ranking script supporting multiple strategies (bge_clf_caption, siglip_bge_clf, bge_para_caption, soft blend), threshold sweep, and paraphrase namespace selection
+- Wrote `scripts/regen_paraphrases.py` — reruns paraphrasing under a named cache namespace (used to regenerate with Qwen)
+- Wrote `scripts/cross_encoder_rank.py` — tests BGE-reranker-v2-m3 cross-encoder as a replacement for bi-encoder cosine similarity
+- Wrote `scripts/replay_ranking.py` — replays any cached strategy over the full dataset without re-running the encoder
+- Wrote `scripts/audit_classifier.py` — audits LR classifier accuracy on EN dev set to confirm it is not the bottleneck
+- Added Qwen prompt templates to `src/models/slm_paraphraser.py` (used by qwen_paraphraser.py)
+- Wrote `ABLATIONS.md` — documents all 19 submitted strategies, scores, and key findings for the report
+- I reviewed all code before running and checked outputs against Codabench scores
+
+**Ablation results summary (19 strategies, 2663 rows, 15 languages):**
+- Best score: **0.37** (`bge_clf_caption`, Phi-3.5, threshold 0.75)
+- Empirical ceiling confirmed: improving paraphraser, similarity model, threshold, and translation pipeline all gave ≤ 0.37
+- Root cause of ceiling: visual metaphor gap — figurative image captions describe literal scenes, not abstract concepts
+- LR classifier accuracy: 94.1% on EN dev set — not the bottleneck
 
