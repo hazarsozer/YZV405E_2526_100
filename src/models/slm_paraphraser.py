@@ -85,18 +85,19 @@ class Phi35Paraphraser:
     # ------------------------------------------------------------------
 
     def load(self) -> None:
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-        )
         self._tokenizer = AutoTokenizer.from_pretrained(self.MODEL_ID)
-        self._model = AutoModelForCausalLM.from_pretrained(
-            self.MODEL_ID,
-            quantization_config=bnb_config,
-            device_map=self._device,
-        )
+        load_kwargs: dict = {"device_map": self._device}
+        if self._device == "cuda":
+            load_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+            )
+        else:
+            # bitsandbytes 4-bit is CUDA-only; use native precision on mps/cpu
+            load_kwargs["torch_dtype"] = torch.float16 if self._device == "mps" else torch.float32
+        self._model = AutoModelForCausalLM.from_pretrained(self.MODEL_ID, **load_kwargs)
         self._model.eval()
 
     def unload(self) -> None:
