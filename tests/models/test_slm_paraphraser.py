@@ -6,7 +6,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 import torch
 
-from src.models.slm_paraphraser import IdentityParaphraser, Phi35Paraphraser
+from src.models.slm_paraphraser import (
+    IdentityParaphraser,
+    Phi35Paraphraser,
+    _filter_paraphrase_variants,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -34,6 +38,13 @@ class TestIdentityParaphraser:
 # ---------------------------------------------------------------------------
 
 
+class _FakeInputs(dict):
+    """Dict with .to(device) so it behaves like a tokenizer output (return_dict=True)."""
+
+    def to(self, device: str) -> "_FakeInputs":
+        return self
+
+
 def _make_phi_mocks(generated_text: str = "She revealed the secret."):
     """Return (fake_tokenizer, fake_model) producing *generated_text*."""
     prompt_len = 20
@@ -41,9 +52,9 @@ def _make_phi_mocks(generated_text: str = "She revealed the secret."):
 
     fake_tok = MagicMock()
     fake_tok.eos_token_id = 2
-    # apply_chat_template → tensor of shape (1, prompt_len)
-    fake_tok.apply_chat_template.return_value = torch.zeros(
-        1, prompt_len, dtype=torch.long
+    # apply_chat_template → dict-like with input_ids (matches return_dict=True)
+    fake_tok.apply_chat_template.return_value = _FakeInputs(
+        input_ids=torch.zeros(1, prompt_len, dtype=torch.long)
     )
     # decode → the generated text
     fake_tok.decode.return_value = generated_text
@@ -161,3 +172,72 @@ class TestPhi35Paraphraser:
         p.unload()
         assert p._model is None
         assert p._tokenizer is None
+
+    # --- enrich_caption ---
+
+    def test_enrich_caption_returns_string(self, paraphraser_and_mocks):
+        p, fake_tok, *_ = paraphraser_and_mocks
+        fake_tok.decode.return_value = "A person causes trouble for others. This symbolizes spreading corruption."
+        result = p.enrich_caption("A person causes trouble for others.", "bad apple")
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_enrich_caption_compound_in_prompt(self, paraphraser_and_mocks):
+        p, fake_tok, *_ = paraphraser_and_mocks
+        fake_tok.decode.return_value = "enriched"
+        p.enrich_caption("A rotten apple on a table.", "bad apple")
+        call_args = fake_tok.apply_chat_template.call_args
+        messages = call_args[0][0]
+        assert any("bad apple" in m["content"] for m in messages)
+
+    # --- paraphrase_k ---
+
+    def test_paraphrase_k_returns_k_variants(self, paraphraser_and_mocks):
+        p, fake_tok, *_ = paraphraser_and_mocks
+        outputs = ["She told everyone.", "She disclosed the secret.", "She blabbed.", "She confessed."]
+        fake_tok.decode.side_effect = outputs
+        results = p.paraphrase_k("She spilled the beans.", "spilled the beans", k=4)
+        assert len(results) == 4
+
+    def test_paraphrase_k_falls_back_on_empty(self, paraphraser_and_mocks):
+        p, fake_tok, *_ = paraphraser_and_mocks
+        fake_tok.decode.side_effect = ["", "", "", "She told everyone."]
+        results = p.paraphrase_k("She spilled the beans.", "spilled the beans", k=4)
+        assert all(isinstance(r, str) for r in results)
+        assert len(results) == 4
+
+
+# ---------------------------------------------------------------------------
+# _filter_paraphrase_variants
+# ---------------------------------------------------------------------------
+
+
+class TestFilterParaphraseVariants:
+    def test_removes_compound_present(self):
+        original = "She spilled the beans at the meeting."
+        variants = [
+            "She revealed the secret.",       # good
+            "She spilled the beans again.",    # compound still present → filtered
+            "She disclosed everything.",       # good
+            "She told the truth.",             # good
+        ]
+        filtered = _filter_paraphrase_variants(variants, original, "spilled the beans")
+        assert not any("spilled the beans" in v for v in filtered)
+
+    def test_removes_too_short(self):
+        original = "The project was going well but then hit a real obstacle."
+        # Two long variants survive → no fallback → short one is filtered out
+        variants = [
+            "OK.",
+            "Things were fine but then they encountered a serious problem.",
+            "The work progressed well until they ran into a significant obstacle.",
+        ]
+        filtered = _filter_paraphrase_variants(variants, original, "hit a wall")
+        assert not any(len(v.split()) < 0.5 * len(original.split()) for v in filtered)
+
+    def test_fallback_if_too_few_survive(self):
+        original = "She spilled the beans."
+        # All have compound — normally all filtered, but fallback kicks in
+        variants = ["She spilled the beans again.", "She spilled the beans loudly."]
+        result = _filter_paraphrase_variants(variants, original, "spilled the beans")
+        assert len(result) == 2  # fallback to original list
