@@ -29,6 +29,12 @@ models/
 
 # Submission outputs
 data/submissions/output/
+data/submissions/ablations/
+data/submissions/blend_zips/
+data/submissions/final/
+
+# Course proposal PDF (local reference, not source)
+*.pdf
 
 # IDEs (Cursor / VS Code)
 .vscode/

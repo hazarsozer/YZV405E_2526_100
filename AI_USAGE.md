@@ -135,3 +135,48 @@ Used Claude Code (CLI) as a coding assistant throughout these sessions.
 - Root cause of ceiling: visual metaphor gap — figurative image captions describe literal scenes, not abstract concepts
 - LR classifier accuracy: 94.1% on EN dev set — not the bottleneck
 
+---
+
+## 2026-05-10 — Caption enrichment + 3-channel blend (Round 6 ablations)
+
+Used Claude Code (CLI) as a coding assistant in this session.
+
+**Context:** Teammate Faruk pushed three new scripts on 2026-05-08 (`enrich_captions.py`,
+`blend_rank.py`, `eval_train.py`) and a new `enrich_caption()` / `paraphrase_k()`
+method on `Phi35Paraphraser`. He could not run them on his M3 MacBook (bitsandbytes
+4-bit quantisation requires CUDA). I ran them on the RTX 4070 Super.
+
+**Decisions I made:**
+- Run the full caption enrichment over all 3,720 unique (caption, compound) pairs
+  rather than a sample — so the result is conclusive
+- Pick three strategically-different weight configurations for Codabench rather than
+  submitting all 21 grid points (pure C2, C2-dominant blend, full 3-way with SigLIP2)
+- Restart `enrich_captions.py` under `nohup` after the first run died at 900/3720
+  (the `tee | python &` pattern took down the process when the parent shell exited)
+- Document the negative result in ABLATIONS.md as Round 6 — keep Faruk's code on main,
+  it is functional, just doesn't beat 0.37
+
+**What I used Claude for:**
+- Read and audited Faruk's three new scripts before running them (`enrich_captions.py`,
+  `blend_rank.py`, `eval_train.py`)
+- Pulled and ran the enrichment pipeline (~2.5 hr on the 4070 Super)
+- Ran `blend_rank.py --weight-grid` to generate all 21 weight configurations at once
+- Wrote the inline evaluation against EN/PT-BR train gold (`eval_train.py` had a path
+  mismatch with our directory structure; switched to direct comparison instead — but
+  the train/test split mismatch made local eval unreliable, so we went straight to
+  Codabench)
+- Updated ABLATIONS.md (Round 6 + summary table + 5th key finding)
+- Updated this AI_USAGE.md entry
+- Updated `.gitignore` to exclude generated submission folders
+
+**Round 6 results:** All three blend strategies were submitted to Codabench (avg Top-1
+across 15 languages):
+- `blend_enr_c10.00_c21.00_c30.00` (pure enriched, C2 only) → **0.33**
+- `blend_enr_c10.40_c20.60_c30.00` (C2-dominant blend, no SigLIP2) → **0.34**
+- `blend_enr_c10.20_c20.40_c30.40` (3-way blend with SigLIP2) → **0.36**
+
+**Conclusion:** Caption enrichment monotonically hurts. The Phi-3.5-generated symbolic
+sentence pollutes the matching signal more than it bridges the metaphor gap. The 0.37
+ceiling holds across all six rounds of ablations now. Best submission remains
+`bge_clf_caption` (Phi-3.5, threshold 0.75) at **0.37**.
+
