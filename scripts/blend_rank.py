@@ -228,8 +228,9 @@ def _rank_blend(
     scores = (
         w1 * _minmax(cosine_similarity(bge_query, cap_c1))
         + w2 * _minmax(cosine_similarity(bge_query, cap_c2))
-        + w3 * _minmax(cosine_similarity(sig_text, sig_img))
     )
+    if w3 > 1e-9:
+        scores = scores + w3 * _minmax(cosine_similarity(sig_text, sig_img))
     return [image_names[int(i)] for i in np.argsort(-scores)]
 
 
@@ -269,7 +270,11 @@ def main(args: argparse.Namespace) -> None:
         paraphrased = translated
     else:
         log.info("Loading paraphrases (ns: %s) …", args.paraphrase_ns)
-        paraphrased = load_paraphrased(instances, translated, text_cache, args.paraphrase_ns)
+        try:
+            paraphrased = load_paraphrased(instances, translated, text_cache, args.paraphrase_ns)
+        except RuntimeError as exc:
+            log.warning("%s — falling back to translated sentences for paraphrase channel.", exc)
+            paraphrased = translated
         log.info("Loading BGE-M3 paraphrase embeddings …")
         bge_paraphrased = get_sentence_bge_embeddings(paraphrased, emb_cache, args.device)
 

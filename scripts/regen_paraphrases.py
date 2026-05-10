@@ -1,12 +1,12 @@
 """Regenerate paraphrases for all 2663 instances.
 
---k 1 (default): Qwen2.5-7B-Instruct greedy → namespace 'qwen25_paraphrase'.
+--k 1 (default): Phi-3.5-mini-instruct greedy → namespace 'phi35_paraphrase'.
 --k > 1:         Phi-3.5-mini-instruct sampling → namespace 'phi35_para_k{k}'.
                  Cache value is a JSON-encoded list[str] of k variants.
                  Cache key is sha256(translated, compound, str(k)).
 
 Usage:
-    uv run python -m scripts.regen_paraphrases                            # Qwen k=1
+    uv run python -m scripts.regen_paraphrases                            # Phi35 k=1
     uv run python -m scripts.regen_paraphrases --k 4                      # Phi35 k=4
     uv run python -m scripts.regen_paraphrases --k 4 --checkpoint-every 25
 """
@@ -25,7 +25,7 @@ from src.utils.io import sha256_string
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-DEFAULT_NS_SINGLE = "qwen25_paraphrase"
+DEFAULT_NS_SINGLE = "phi35_paraphrase"
 DEFAULT_NS_K = "phi35_para_k{k}"
 SRC_NS = "nllb200_translation"
 
@@ -80,8 +80,8 @@ def _run_single(
     device: str,
     checkpoint_every: int,
 ) -> None:
-    """Generate one Qwen greedy paraphrase per instance."""
-    from src.models.qwen_paraphraser import Qwen25Paraphraser
+    """Generate one Phi-3.5-mini-instruct greedy paraphrase per instance."""
+    from src.models.slm_paraphraser import Phi35Paraphraser
 
     keys = [
         sha256_string(translated[i], inst.compound)
@@ -97,7 +97,7 @@ def _run_single(
     log.info("%d / %d need generation.", len(miss_idx), len(instances))
     total = len(miss_idx)
 
-    with Qwen25Paraphraser(device=device) as para:
+    with Phi35Paraphraser(device=device) as para:
         new_cache: dict[str, str] = {}
         for done, mi in enumerate(miss_idx, 1):
             _, inst = instances[mi]
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--namespace", default=None,
-        help="TextCache namespace (default: 'qwen25_paraphrase' for k=1, 'phi35_para_k{k}' for k>1).",
+        help="TextCache namespace (default: 'phi35_paraphrase' for k=1, 'phi35_para_k{k}' for k>1).",
     )
     parser.add_argument("--checkpoint-every", type=int, default=50,
                         help="Flush cache to disk every N items (default: 50).")

@@ -27,7 +27,7 @@ from src.eval import EvalReport
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-EVAL_LANGS = {"EN": "English", "PT-BR": "Portuguese_Brazilian"}
+EVAL_LANGS = {"EN": "English", "PT-BR": "Portuguese-Brazil"}
 TRAIN_FILENAME = "subtask_a_train.tsv"
 
 
@@ -64,19 +64,20 @@ def _eval_strategy(
         pred_df = pd.read_csv(pred_path, sep="\t", dtype=str, keep_default_na=False)
         gold_df = gold[lang_code]
 
-        if len(pred_df) != len(gold_df):
-            log.warning(
-                "%s: row count mismatch (pred %d, gold %d) — skipping.",
-                lang_code,
-                len(pred_df),
-                len(gold_df),
-            )
+        merged = pred_df.merge(
+            gold_df[["compound", "sentence", "expected_order"]],
+            on=["compound", "sentence"],
+            suffixes=("_pred", "_gold"),
+        )
+        if merged.empty:
+            log.warning("%s: no rows matched after join — skipping.", lang_code)
             continue
+        log.info("%s: %d train rows matched in submission.", lang_code, len(merged))
 
         report = EvalReport()
-        for (_, pred_row), (_, gold_row) in zip(pred_df.iterrows(), gold_df.iterrows()):
-            pred_order_raw = pred_row.get("expected_order", "")
-            gold_order_raw = gold_row.get("expected_order", "")
+        for _, row in merged.iterrows():
+            pred_order_raw = row.get("expected_order_pred", "")
+            gold_order_raw = row.get("expected_order_gold", "")
 
             if not pred_order_raw or not gold_order_raw:
                 continue
