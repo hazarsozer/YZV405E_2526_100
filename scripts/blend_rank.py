@@ -228,8 +228,9 @@ def _rank_blend(
     scores = (
         w1 * _minmax(cosine_similarity(bge_query, cap_c1))
         + w2 * _minmax(cosine_similarity(bge_query, cap_c2))
-        + w3 * _minmax(cosine_similarity(sig_text, sig_img))
     )
+    if w3 > 1e-9:
+        scores = scores + w3 * _minmax(cosine_similarity(sig_text, sig_img))
     return [image_names[int(i)] for i in np.argsort(-scores)]
 
 
@@ -269,7 +270,11 @@ def main(args: argparse.Namespace) -> None:
         paraphrased = translated
     else:
         log.info("Loading paraphrases (ns: %s) …", args.paraphrase_ns)
-        paraphrased = load_paraphrased(instances, translated, text_cache, args.paraphrase_ns)
+        try:
+            paraphrased = load_paraphrased(instances, translated, text_cache, args.paraphrase_ns)
+        except RuntimeError as exc:
+            log.warning("%s — falling back to translated sentences for paraphrase channel.", exc)
+            paraphrased = translated
         log.info("Loading BGE-M3 paraphrase embeddings …")
         bge_paraphrased = get_sentence_bge_embeddings(paraphrased, emb_cache, args.device)
 
@@ -285,10 +290,17 @@ def main(args: argparse.Namespace) -> None:
     else:
         cap_c2_embs = cap_c1_embs  # C2 = C1 when not enriched
 
-    log.info("Loading SigLIP2 embeddings (C3) …")
-    sig_img_embs, sig_orig_embs, sig_para_embs = load_siglip2_embeddings(
-        instances, translated, paraphrased, emb_cache, args.device
-    )
+    # Determine if any weight config uses C3 before loading SigLIP2
+    _need_siglip = args.weight_grid or (args.weights[2] != 0.0)
+    if _need_siglip:
+        log.info("Loading SigLIP2 embeddings (C3) …")
+        sig_img_embs, sig_orig_embs, sig_para_embs = load_siglip2_embeddings(
+            instances, translated, paraphrased, emb_cache, args.device
+        )
+    else:
+        log.info("Skipping SigLIP2 (w3=0 for all configs).")
+        _dummy = [np.zeros(1) for _ in instances]
+        sig_img_embs, sig_orig_embs, sig_para_embs = _dummy, _dummy, _dummy
 
     log.info("Loading LR classifier …")
     clf = LRSenseClassifier.from_path(Path(args.classifier))
