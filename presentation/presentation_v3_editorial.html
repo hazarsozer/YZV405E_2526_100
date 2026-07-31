@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdMIRe 2.0 — Sense-Gated Caption Matching · v3 Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,30..100,0..1;1,9..144,300..900,30..100,0..1&family=Mulish:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   THEME — Editorial Magazine aesthetic
+   ============================================================ */
+:root {
+    --paper: #F5EFE3;
+    --paper-deep: #ECE3D0;
+    --paper-soft: #FAF5EA;
+    --ink: #2A1B16;
+    --ink-soft: #4A3328;
+    --muted: #8B7765;
+    --rule: #D4C7B4;
+    --rule-soft: #E0D3BD;
+    --rust: #B8421B;
+    --rust-dim: #8B3216;
+    --rust-bg: #F0DBCB;
+    --teal: #3D6B6E;
+    --gold: #C8954C;
+
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Mulish', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+
+    --title-size: clamp(2.5rem, 6vw, 5.5rem);
+    --h2-size: clamp(1.75rem, 4vw, 3.4rem);
+    --h3-size: clamp(1.15rem, 2vw, 1.5rem);
+    --body-size: clamp(0.88rem, 1.35vw, 1.1rem);
+    --small-size: clamp(0.72rem, 1vw, 0.9rem);
+    --micro-size: clamp(0.64rem, 0.82vw, 0.76rem);
+
+    --slide-padding: clamp(2rem, 5vw, 5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+    font-family: var(--body);
+    color: var(--ink);
+    background: var(--paper);
+    font-size: var(--body-size);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: var(--slide-padding);
+    background: var(--paper);
+}
+
+/* paper warmth gradient + subtle noise feeling */
+.slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at top right, rgba(184, 66, 27, 0.04), transparent 60%),
+        radial-gradient(ellipse 60% 70% at bottom left, rgba(61, 107, 110, 0.025), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.slide > * { position: relative; z-index: 1; }
+
+/* ============================================================
+   CHROME — editorial-style
+   ============================================================ */
+.chrome-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: clamp(0.6rem, 1vw, 0.9rem);
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: clamp(1.2rem, 2.5vw, 2.5rem);
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.chrome-top .issue {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: var(--small-size);
+    color: var(--ink);
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.chrome-top .section-num {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+    color: var(--rust);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+}
+
+.chrome-bottom {
+    margin-top: auto;
+    padding-top: clamp(0.7rem, 1.3vw, 1rem);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.chrome-bottom .pagination {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink);
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: var(--small-size);
+}
+
+.chrome-bottom .pagination .num { font-weight: 500; }
+.chrome-bottom .pagination .total { color: var(--muted); }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.section-tag {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--rust);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: clamp(0.75rem, 1.5vw, 1.1rem);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-tag::before {
+    content: '';
+    width: clamp(1.5rem, 3vw, 2.5rem);
+    height: 1px;
+    background: var(--rust);
+}
+
+.slide-headline {
+    font-family: var(--display);
+    font-weight: 350;
+    font-size: var(--h2-size);
+    line-height: 0.98;
+    color: var(--ink);
+    letter-spacing: -0.025em;
+    margin: 0;
+    font-feature-settings: 'liga' 1, 'dlig' 1;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+}
+
+.slide-headline em {
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 350;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50, 'WONK' 1;
+}
+
+.slide-deck {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    color: var(--ink-soft);
+    margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+    max-width: 50ch;
+    line-height: 1.45;
+    font-weight: 400;
+    font-variation-settings: 'opsz' 24;
+}
+
+/* drop cap */
+.drop-cap::first-letter {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(3.5rem, 5.5vw, 5rem);
+    line-height: 0.85;
+    float: left;
+    margin: 0.05em 0.1em 0 -0.05em;
+    color: var(--rust);
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+}
+
+/* ============================================================
+   SLIDE 1 — TITLE (editorial cover)
+   ============================================================ */
+.cover-slide { padding: 0; }
+
+.cover-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 0.7fr;
+    grid-template-rows: auto 1fr auto;
+    padding: clamp(2rem, 4.5vw, 4rem) clamp(2.5rem, 5vw, 5rem);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    position: relative;
+}
+
+.cover-masthead {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: clamp(0.75rem, 1.2vw, 1rem);
+    border-bottom: 2px solid var(--ink);
+}
+
+.cover-masthead .left {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+    color: var(--ink);
+    font-weight: 400;
+    line-height: 1;
+}
+
+.cover-masthead .left .number {
+    color: var(--rust);
+    font-style: normal;
+    font-weight: 500;
+}
+
+.cover-masthead .right {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-align: right;
+}
+
+.cover-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-right: clamp(1rem, 2vw, 2rem);
+}
+
+.cover-eyebrow {
+    font-family: var(--body);
+    font-size: var(--small-size);
+    color: var(--rust);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.cover-title {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: var(--title-size);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    margin: 0 0 clamp(1.25rem, 2.5vw, 2rem) 0;
+    font-feature-settings: 'liga' 1, 'dlig' 1;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+}
+
+.cover-title em {
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 300;
+    font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1;
+}
+
+.cover-deck {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 350;
+    font-size: clamp(1.05rem, 1.55vw, 1.35rem);
+    color: var(--ink-soft);
+    line-height: 1.4;
+    max-width: 35ch;
+    font-variation-settings: 'opsz' 24;
+}
+
+.cover-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    border-left: 1px solid var(--rule);
+    padding-left: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.cover-side .ornament {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(4rem, 9vw, 8rem);
+    color: var(--rust);
+    line-height: 0.7;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 1;
+    font-weight: 300;
+}
+
+.cover-side .ornament .small {
+    font-size: 0.45em;
+    color: var(--muted);
+    font-style: normal;
+    font-family: var(--body);
+    font-weight: 400;
+    display: block;
+    margin-top: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.cover-byline {
+    font-family: var(--body);
+    font-size: var(--small-size);
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+.cover-byline .label {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.cover-byline .name {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink);
+    font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+.cover-footer {
+    grid-column: 1 / -1;
+    padding-top: clamp(0.75rem, 1.5vw, 1.25rem);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.cover-footer em {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    font-size: var(--small-size);
+}
+
+/* ============================================================
+   SLIDE 2 — TASK
+   ============================================================ */
+.task-frame {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    flex: 1;
+    align-items: center;
+}
+
+.task-prose .opening {
+    font-family: var(--body);
+    font-size: var(--body-size);
+    color: var(--ink-soft);
+    line-height: 1.65;
+    margin: 0 0 clamp(1rem, 2vw, 1.5rem) 0;
+    max-width: 38ch;
+}
+
+.task-prose .opening .target {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 500;
+}
+
+.task-prose .pull {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.2rem, 1.85vw, 1.7rem);
+    line-height: 1.3;
+    color: var(--ink);
+    border-left: 3px solid var(--rust);
+    padding-left: clamp(1rem, 2vw, 1.5rem);
+    margin: clamp(1rem, 2vw, 1.5rem) 0;
+    font-variation-settings: 'opsz' 144, 'SOFT' 30;
+    max-width: 30ch;
+    font-weight: 350;
+}
+
+.task-prose .pull strong {
+    color: var(--rust);
+    font-weight: 400;
+}
+
+.task-facts {
+    list-style: none;
+    padding: 0;
+    margin: clamp(1rem, 2vw, 1.5rem) 0 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1rem, 1.8vw, 1.4rem);
+}
+
+.task-facts li {
+    border-top: 1px solid var(--ink);
+    padding-top: clamp(0.5rem, 1vw, 0.75rem);
+    line-height: 1.4;
+}
+
+.task-facts .num {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+    font-variation-settings: 'opsz' 144;
+}
+
+.task-facts .lbl {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.task-example {
+    background: var(--paper-soft);
+    border: 1px solid var(--rule);
+    padding: clamp(1.2rem, 2.3vw, 1.85rem);
+    position: relative;
+}
+
+.task-example::before {
+    content: '"';
+    position: absolute;
+    top: -0.2em;
+    left: 0.4rem;
+    font-family: var(--display);
+    font-size: clamp(4rem, 7vw, 6rem);
+    color: var(--rust);
+    line-height: 1;
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    opacity: 0.7;
+}
+
+.task-example .ex-meta {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: clamp(0.5rem, 1vw, 0.75rem);
+    padding-left: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.task-example .ex-text {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 350;
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    color: var(--ink);
+    line-height: 1.5;
+    padding-left: clamp(1.5rem, 3vw, 2.5rem);
+    padding-bottom: clamp(1rem, 1.8vw, 1.4rem);
+    margin-bottom: clamp(1rem, 1.8vw, 1.4rem);
+    border-bottom: 1px solid var(--rule);
+    font-variation-settings: 'opsz' 144, 'SOFT' 40;
+}
+
+.task-example .ex-text .target {
+    background: var(--rust-bg);
+    color: var(--rust);
+    padding: 0.05em 0.35em;
+    font-style: normal;
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 0.88em;
+}
+
+.task-example .img-row-label {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: clamp(0.5rem, 0.9vw, 0.7rem);
+}
+
+.task-example .img-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(0.4rem, 0.7vw, 0.55rem);
+}
+
+.task-example .img-slot {
+    aspect-ratio: 1;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    padding: clamp(0.4rem, 0.7vw, 0.55rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.task-example .img-slot .rank {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+    color: var(--ink);
+    line-height: 1;
+    font-weight: 400;
+    font-variation-settings: 'opsz' 144;
+}
+
+.task-example .img-slot .cat {
+    font-family: var(--body);
+    font-size: clamp(0.55rem, 0.72vw, 0.65rem);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+    font-weight: 600;
+}
+
+.task-example .img-slot.gold {
+    background: var(--rust-bg);
+    border-color: var(--rust);
+}
+
+.task-example .img-slot.gold .rank { color: var(--rust); }
+
+/* ============================================================
+   SLIDE 3 — PIPELINE (editorial diagram)
+   ============================================================ */
+.pipeline-frame {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1.2rem, 2.5vw, 2rem);
+}
+
+.pipeline-svg-container svg {
+    width: 100%;
+    height: auto;
+    max-height: 48vh;
+    display: block;
+}
+
+.pipeline-callouts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(1rem, 2vw, 1.75rem);
+}
+
+.pipeline-callouts .item {
+    border-top: 2px solid var(--ink);
+    padding-top: clamp(0.6rem, 1.2vw, 0.9rem);
+}
+
+.pipeline-callouts .item .lbl {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.pipeline-callouts .item .val {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.3rem, 1.95vw, 1.7rem);
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    font-variation-settings: 'opsz' 144;
+}
+
+.pipeline-callouts .item .val .unit {
+    font-family: var(--body);
+    font-size: 0.6em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-left: 0.15em;
+}
+
+.pipeline-callouts .item .desc {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+/* ============================================================
+   SLIDE 4 — DISCOVERY (big number editorial)
+   ============================================================ */
+.discovery-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 0.85fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: center;
+}
+
+.discovery-text .opening {
+    font-family: var(--body);
+    font-size: clamp(0.95rem, 1.35vw, 1.1rem);
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 38ch;
+}
+
+.discovery-text .opening em {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 500;
+}
+
+.discovery-text ul {
+    list-style: none;
+    padding: 0;
+    margin: clamp(1.2rem, 2vw, 1.75rem) 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.65rem, 1.1vw, 0.95rem);
+}
+
+.discovery-text li {
+    font-family: var(--body);
+    font-size: var(--small-size);
+    line-height: 1.55;
+    color: var(--ink-soft);
+    padding-left: clamp(1.5rem, 2.5vw, 1.85rem);
+    position: relative;
+}
+
+.discovery-text li::before {
+    content: '※';
+    position: absolute;
+    left: 0;
+    top: 0.05em;
+    color: var(--rust);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.1em;
+}
+
+.discovery-text li strong { color: var(--ink); font-weight: 700; }
+
+.discovery-bignum {
+    text-align: center;
+    padding: clamp(1rem, 2vw, 1.5rem) 0;
+    position: relative;
+}
+
+.discovery-bignum .label-before,
+.discovery-bignum .label-after {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.discovery-bignum .stack {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    margin: clamp(0.75rem, 1.5vw, 1.25rem) 0;
+}
+
+.discovery-bignum .num {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(3.5rem, 7vw, 6rem);
+    line-height: 0.9;
+    color: var(--ink);
+    letter-spacing: -0.04em;
+    font-variation-settings: 'opsz' 144;
+}
+
+.discovery-bignum .num.after { color: var(--rust); }
+
+.discovery-bignum .arrow {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    color: var(--rust);
+    font-weight: 300;
+    font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1;
+}
+
+.discovery-bignum .delta-card {
+    margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.6rem, 1.2vw, 0.95rem) clamp(1rem, 2vw, 1.5rem);
+    background: var(--rust-bg);
+    border: 1px solid var(--rust);
+    display: inline-block;
+}
+
+.discovery-bignum .delta-card .delta {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+    color: var(--rust-dim);
+    letter-spacing: -0.01em;
+}
+
+.discovery-bignum .delta-card .delta strong {
+    font-weight: 500;
+    color: var(--rust);
+}
+
+/* ============================================================
+   SLIDE 5 — RESULTS (gauge + table)
+   ============================================================ */
+.results-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: center;
+}
+
+.results-gauge {
+    text-align: center;
+    position: relative;
+}
+
+.gauge-label {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.gauge-svg {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+.gauge-caption {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+    color: var(--ink-soft);
+    margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+    line-height: 1.45;
+    max-width: 35ch;
+    margin-left: auto;
+    margin-right: auto;
+    font-variation-settings: 'opsz' 24;
+}
+
+.results-detail {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.results-detail .strategy-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.4rem, 0.7vw, 0.55rem);
+}
+
+.results-detail .strategy-list li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 1rem;
+    padding: clamp(0.4rem, 0.75vw, 0.6rem) 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--body);
+    font-size: var(--small-size);
+    color: var(--ink-soft);
+}
+
+.results-detail .strategy-list li .name { line-height: 1.4; }
+
+.results-detail .strategy-list li .score {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 144;
+}
+
+.results-detail .strategy-list li.best {
+    background: var(--rust-bg);
+    border-color: var(--rust);
+    margin: 0 calc(-1 * clamp(0.5rem, 1vw, 0.8rem));
+    padding-left: clamp(0.5rem, 1vw, 0.8rem);
+    padding-right: clamp(0.5rem, 1vw, 0.8rem);
+    border-top: 1px solid var(--rust);
+    position: relative;
+}
+
+.results-detail .strategy-list li.best::before {
+    content: '★';
+    position: absolute;
+    left: clamp(0.5rem, 1vw, 0.8rem);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--rust);
+    font-size: 0.85em;
+}
+
+.results-detail .strategy-list li.best .name {
+    color: var(--rust);
+    font-weight: 700;
+    padding-left: 1.5em;
+}
+
+.results-detail .strategy-list li.best .score {
+    color: var(--rust);
+    font-weight: 500;
+}
+
+/* ============================================================
+   SLIDE 6 — ABLATIONS (vertical journey)
+   ============================================================ */
+.ablation-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: stretch;
+}
+
+.ablation-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vw, 0.8rem);
+}
+
+.ablation-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    align-items: center;
+    padding: clamp(0.5rem, 1vw, 0.85rem) 0;
+    border-bottom: 1px solid var(--rule);
+}
+
+.ablation-item .marker {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+    color: var(--rust);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+    font-style: italic;
+    min-width: 2.2em;
+}
+
+.ablation-item .body .title {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+    color: var(--ink);
+    line-height: 1.25;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+    font-style: italic;
+}
+
+.ablation-item .body .verdict {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    margin-top: 0.2rem;
+    line-height: 1.4;
+}
+
+.ablation-item .score-pill {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--ink);
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--rule);
+    background: var(--paper-soft);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.ablation-item.win .score-pill { color: var(--rust); border-color: var(--rust); background: var(--rust-bg); }
+.ablation-item.loss .score-pill { color: var(--teal); border-color: var(--teal); background: rgba(61, 107, 110, 0.08); }
+
+.ablation-narrative {
+    background: var(--paper-soft);
+    border-left: 3px solid var(--rust);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.ablation-narrative .nq {
+    position: absolute;
+    top: clamp(0.5rem, 1vw, 0.85rem);
+    right: clamp(0.5rem, 1vw, 0.85rem);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(4rem, 7vw, 6rem);
+    color: var(--rust);
+    line-height: 0.6;
+    opacity: 0.25;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+}
+
+.ablation-narrative .lead-num {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(3.5rem, 6vw, 5.25rem);
+    color: var(--rust);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: clamp(0.5rem, 1vw, 0.85rem);
+    font-variation-settings: 'opsz' 144;
+}
+
+.ablation-narrative .lead-num .stub {
+    font-size: 0.4em;
+    color: var(--muted);
+    font-weight: 400;
+    font-family: var(--body);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-left: 0.3em;
+    vertical-align: middle;
+}
+
+.ablation-narrative .lead-text {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 350;
+    font-size: clamp(1.1rem, 1.65vw, 1.4rem);
+    line-height: 1.35;
+    color: var(--ink);
+    margin: 0;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+}
+
+.ablation-narrative .lead-text strong {
+    color: var(--rust);
+    font-weight: 500;
+    font-style: normal;
+    font-family: var(--body);
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.05em;
+}
+
+.ablation-narrative .signoff {
+    margin-top: clamp(0.85rem, 1.6vw, 1.25rem);
+    padding-top: clamp(0.6rem, 1.2vw, 1rem);
+    border-top: 1px solid var(--rule);
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ============================================================
+   SLIDE 7 — CONCLUSIONS
+   ============================================================ */
+.conc-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+    margin-top: clamp(0.5rem, 1vw, 0.75rem);
+}
+
+.conc-col h3 {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--rust);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 0 0 clamp(0.75rem, 1.5vw, 1.2rem) 0;
+    padding-bottom: clamp(0.4rem, 0.8vw, 0.6rem);
+    border-bottom: 2px solid var(--ink);
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.conc-col h3 .num {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink);
+    font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+    letter-spacing: -0.02em;
+    text-transform: none;
+    font-weight: 400;
+    font-variation-settings: 'opsz' 144;
+}
+
+.conc-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.7rem, 1.3vw, 1rem);
+}
+
+.conc-col li {
+    font-family: var(--body);
+    font-size: var(--small-size);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    padding-left: clamp(1.5rem, 2.5vw, 1.85rem);
+    position: relative;
+}
+
+.conc-col li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--rust);
+    font-family: var(--display);
+    font-weight: 400;
+}
+
+.conc-col li strong { color: var(--ink); font-weight: 700; }
+
+.conc-col .num-tag {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    font-variation-settings: 'opsz' 144;
+}
+
+.thanks {
+    grid-column: 1 / -1;
+    margin-top: clamp(0.5rem, 1vw, 0.75rem);
+    padding-top: clamp(0.85rem, 1.6vw, 1.3rem);
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.thanks .closing {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    color: var(--ink);
+    font-weight: 350;
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+}
+
+.thanks .closing em {
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 400;
+    font-variation-settings: 'opsz' 144, 'SOFT' 80, 'WONK' 1;
+}
+
+.thanks .contact {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ============================================================
+   PROGRESS + KEYBOARD HINT
+   ============================================================ */
+.progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--rust);
+    z-index: 100;
+    transition: width 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0;
+}
+
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+    right: clamp(0.75rem, 1.5vw, 1.25rem);
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    z-index: 100;
+    pointer-events: none;
+    background: var(--paper-soft);
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--rule);
+    font-weight: 600;
+}
+
+.keyboard-hint.visible { opacity: 0.9; }
+
+.keyboard-hint kbd {
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    padding: 0.05rem 0.3rem;
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    font-weight: 500;
+}
+
+/* ============================================================
+   REVEAL ANIMATIONS
+   ============================================================ */
+.slide .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+.slide.active .reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@page {
+    size: 1280px 720px;
+    margin: 0;
+}
+
+@media print {
+    html, body { scroll-snap-type: none; height: auto; overflow: visible; background: var(--paper); }
+    .slide {
+        page-break-after: always;
+        break-after: page;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+    }
+    .slide:last-child { page-break-after: auto; }
+    .slide .reveal { opacity: 1 !important; transform: none !important; }
+    .progress-bar, .keyboard-hint { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    .slide .reveal { opacity: 1; transform: none; }
+}
+
+@media (max-height: 700px) {
+    :root { --slide-padding: clamp(1.25rem, 3.5vw, 3rem); }
+}
+
+@media (max-height: 600px) {
+    :root { --slide-padding: clamp(1rem, 3vw, 2rem); }
+    .keyboard-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — COVER -->
+<section class="slide cover-slide" id="s1" aria-label="Title">
+    <div class="cover-frame">
+        <div class="cover-masthead reveal" style="--reveal-delay: 0ms;">
+            <div class="left">YZV405E · <span class="number">Group 100</span> · <em>Spring 2025–26</em></div>
+            <div class="right">Volume 1 · Issue 01 · 20 May 2026</div>
+        </div>
+
+        <div class="cover-main">
+            <div class="cover-eyebrow reveal" style="--reveal-delay: 100ms;">A field report on multimodal idiom understanding</div>
+            <h1 class="cover-title reveal" style="--reveal-delay: 200ms;">
+                Multimodal Idiom Ranking<br>
+                with <em>Sense-Gated<br>Caption Matching</em>
+            </h1>
+            <p class="cover-deck reveal" style="--reveal-delay: 350ms;">
+                Why the right image for "bad apple" depends entirely on the sentence around it — and what six rounds of ablation taught us about the ceiling of text–caption matching.
+            </p>
+        </div>
+
+        <div class="cover-side">
+            <div class="ornament reveal" style="--reveal-delay: 300ms;">
+                0.37<span class="small">our best · 15-lang avg</span>
+            </div>
+            <div class="cover-byline reveal" style="--reveal-delay: 450ms;">
+                <span class="label">By</span>
+                <div class="name">Hazar Utku Sözer<br>Faruk Rıza Öz<br>Enis Furkan Kırmızı</div>
+            </div>
+        </div>
+
+        <div class="cover-footer reveal" style="--reveal-delay: 550ms;">
+            <span>Istanbul Technical University · AI &amp; Data Engineering</span>
+            <em>AdMIRe 2.0 @ MWE-2026 · EACL Workshop</em>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 2 — TASK -->
+<section class="slide" id="s2" aria-label="Task">
+    <div class="chrome-top">
+        <div>
+            <div>The Task</div>
+        </div>
+        <div class="section-num">№ 01</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">Rank by meaning, not by look</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        Five images. <em>Only context</em> says which one to put first.
+    </h2>
+
+    <div class="task-frame">
+        <div class="task-prose reveal" style="--reveal-delay: 250ms;">
+            <p class="opening drop-cap">
+                An idiom — <span class="target">bad apple</span>, <span class="target">cold feet</span>, <span class="target">broken heart</span> — can be read literally or figuratively. The sentence around it is the only thing that decides.
+            </p>
+
+            <div class="pull">
+                The visual choice depends on <strong>context</strong>, not the phrase.
+            </div>
+
+            <ul class="task-facts">
+                <li><div class="num">15</div><div class="lbl">Languages · 13 zero-shot</div></li>
+                <li><div class="num">2,663</div><div class="lbl">Sentences · 749 compounds</div></li>
+                <li><div class="num">4,845</div><div class="lbl">Images · 5 per sentence</div></li>
+                <li><div class="num">Top-1</div><div class="lbl">Accuracy · 15-lang avg</div></li>
+            </ul>
+        </div>
+
+        <div class="task-example reveal" style="--reveal-delay: 400ms;">
+            <div class="ex-meta">Example · Idiomatic reading</div>
+            <div class="ex-text">
+                We have to recognize that this is not the occasional <span class="target">bad apple</span> but a structural, sector-wide problem.
+            </div>
+            <div class="img-row-label">Gold ranking · five candidates</div>
+            <div class="img-row">
+                <div class="img-slot gold"><span class="rank">I</span><span class="cat">Strongly<br>figurative</span></div>
+                <div class="img-slot"><span class="rank">II</span><span class="cat">Mildly<br>figurative</span></div>
+                <div class="img-slot"><span class="rank">III</span><span class="cat">Mildly<br>literal</span></div>
+                <div class="img-slot"><span class="rank">IV</span><span class="cat">Strongly<br>literal</span></div>
+                <div class="img-slot"><span class="rank">V</span><span class="cat">Distractor</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">02</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 3 — PIPELINE -->
+<section class="slide" id="s3" aria-label="Pipeline">
+    <div class="chrome-top">
+        <div>Architecture</div>
+        <div class="section-num">№ 02</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">A four-phase frozen pipeline</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        Translate, paraphrase, classify, <em>then rank</em>.
+    </h2>
+    <p class="slide-deck reveal" style="--reveal-delay: 200ms;">
+        Every encoder is frozen. The only trained component — a calibrated logistic regression — weighs 25 KB on disk.
+    </p>
+
+    <div class="pipeline-frame reveal" style="--reveal-delay: 300ms;">
+        <div class="pipeline-svg-container">
+            <svg viewBox="0 0 1200 280" xmlns="http://www.w3.org/2000/svg" aria-label="Pipeline">
+                <defs>
+                    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#B8421B"/>
+                    </marker>
+                    <style>
+                        .ebox { fill: #FAF5EA; stroke: #2A1B16; stroke-width: 1.5; }
+                        .ebox-accent { fill: #F0DBCB; stroke: #B8421B; stroke-width: 1.5; }
+                        .ebox-out { fill: #2A1B16; stroke: #2A1B16; stroke-width: 1.5; }
+                        .eline { stroke: #B8421B; stroke-width: 1.5; fill: none; }
+                        .elabel { font-family: 'Mulish', sans-serif; font-size: 13px; fill: #2A1B16; font-weight: 600; }
+                        .elabel-muted { font-family: 'Mulish', sans-serif; font-size: 10px; fill: #8B7765; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+                        .elabel-italic { font-family: 'Fraunces', serif; font-size: 13px; fill: #2A1B16; font-style: italic; font-weight: 400; }
+                        .elabel-rust { font-family: 'Fraunces', serif; font-size: 13px; fill: #B8421B; font-style: italic; font-weight: 500; }
+                        .elabel-paper { font-family: 'Fraunces', serif; font-size: 13px; fill: #F5EFE3; font-style: italic; font-weight: 500; }
+                    </style>
+                </defs>
+
+                <text x="115" y="22" class="elabel-muted">PHASE I · Preprocessing</text>
+                <text x="475" y="22" class="elabel-muted">PHASE II · Sense</text>
+                <text x="860" y="22" class="elabel-muted">PHASE III · Images</text>
+                <text x="1075" y="22" class="elabel-muted" text-anchor="middle">PHASE IV · Rank</text>
+
+                <rect x="20" y="60" width="190" height="50" rx="2" class="ebox"/>
+                <text x="115" y="80" text-anchor="middle" class="elabel">sentence</text>
+                <text x="115" y="98" text-anchor="middle" class="elabel-muted">15 LANGUAGES · INPUT</text>
+                <path d="M 210 85 L 245 85" class="eline" marker-end="url(#arrow3)"/>
+
+                <rect x="245" y="60" width="170" height="50" rx="2" class="ebox"/>
+                <text x="330" y="80" text-anchor="middle" class="elabel-italic">NLLB-200</text>
+                <text x="330" y="98" text-anchor="middle" class="elabel-muted">→ ENGLISH</text>
+                <path d="M 330 110 L 330 145" class="eline" marker-end="url(#arrow3)"/>
+
+                <rect x="245" y="145" width="170" height="50" rx="2" class="ebox"/>
+                <text x="330" y="165" text-anchor="middle" class="elabel-italic">Phi-3.5-mini · 4-bit</text>
+                <text x="330" y="183" text-anchor="middle" class="elabel-muted">→ PARAPHRASE</text>
+
+                <path d="M 415 170 L 450 170 L 450 85 L 480 85" class="eline" marker-end="url(#arrow3)"/>
+
+                <rect x="480" y="60" width="170" height="50" rx="2" class="ebox"/>
+                <text x="565" y="80" text-anchor="middle" class="elabel-italic">BGE-M3</text>
+                <text x="565" y="98" text-anchor="middle" class="elabel-muted">1024-D EMBEDDING</text>
+                <path d="M 650 85 L 685 85" class="eline" marker-end="url(#arrow3)"/>
+
+                <rect x="685" y="60" width="155" height="50" rx="2" class="ebox-accent"/>
+                <text x="762.5" y="80" text-anchor="middle" class="elabel-rust">Calibrated LR</text>
+                <text x="762.5" y="98" text-anchor="middle" class="elabel-muted">P(IDIOMATIC)</text>
+
+                <rect x="685" y="145" width="155" height="50" rx="2" class="ebox"/>
+                <text x="762.5" y="165" text-anchor="middle" class="elabel-italic">SigLIP2-SO400M</text>
+                <text x="762.5" y="183" text-anchor="middle" class="elabel-muted">5 IMG EMBEDDINGS</text>
+
+                <rect x="481" y="145" width="170" height="50" rx="2" class="ebox"/>
+                <text x="566" y="165" text-anchor="middle" class="elabel">5 candidate imgs</text>
+                <text x="566" y="183" text-anchor="middle" class="elabel-muted">INPUT</text>
+                <path d="M 651 170 L 685 170" class="eline" marker-end="url(#arrow3)"/>
+
+                <path d="M 840 85 L 875 85 L 875 130 L 1000 130" class="eline" marker-end="url(#arrow3)"/>
+                <path d="M 840 170 L 875 170 L 875 130" class="eline"/>
+
+                <rect x="1000" y="100" width="160" height="60" rx="2" class="ebox-out"/>
+                <text x="1080" y="125" text-anchor="middle" class="elabel-paper">Category-Aware</text>
+                <text x="1080" y="143" text-anchor="middle" class="elabel-paper">Ranker</text>
+
+                <path d="M 1080 160 L 1080 195" class="eline" marker-end="url(#arrow3)"/>
+                <rect x="985" y="195" width="190" height="40" rx="2" class="ebox-accent"/>
+                <text x="1080" y="219" text-anchor="middle" class="elabel-rust">ranked order</text>
+
+                <rect x="481" y="225" width="170" height="40" rx="2" class="ebox" stroke-dasharray="4 3"/>
+                <text x="566" y="245" text-anchor="middle" class="elabel">5 EN captions</text>
+                <path d="M 651 245 L 990 245 L 990 215" class="eline" marker-end="url(#arrow3)" stroke-dasharray="4 3"/>
+            </svg>
+        </div>
+
+        <div class="pipeline-callouts">
+            <div class="item">
+                <div class="lbl">Peak VRAM</div>
+                <div class="val">3.5<span class="unit">GB</span></div>
+                <div class="desc">Sequential model lifecycle on a 12 GB RTX 4070 Super.</div>
+            </div>
+            <div class="item">
+                <div class="lbl">Classifier accuracy</div>
+                <div class="val">94.1<span class="unit">%</span></div>
+                <div class="desc">Calibrated LR on EN dev. Precision .935 · Recall .956.</div>
+            </div>
+            <div class="item">
+                <div class="lbl">Trained weights</div>
+                <div class="val">25<span class="unit">KB</span></div>
+                <div class="desc">The entire trained component is the LR head.</div>
+            </div>
+            <div class="item">
+                <div class="lbl">Decision τ</div>
+                <div class="val">0.75</div>
+                <div class="desc">P &gt; τ → paraphrase · P &lt; 1−τ → original · else fallback.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">03</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 4 — DISCOVERY -->
+<section class="slide" id="s4" aria-label="Discovery">
+    <div class="chrome-top">
+        <div>The Pivot</div>
+        <div class="section-num">№ 03</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">What actually moved the score</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        The captions beat the vision encoder. <em>By a lot.</em>
+    </h2>
+
+    <div class="discovery-frame">
+        <div class="discovery-text reveal" style="--reveal-delay: 200ms;">
+            <p class="opening">
+                Our original SigLIP2 image–text pipeline scored <em>0.30</em>. Replacing it with BGE-M3 text matching against the English captions jumped to <em>0.37</em> — and nothing we tried later could improve on it.
+            </p>
+
+            <ul>
+                <li>SigLIP2's <strong>text</strong> encoder is weak on non-English and idiomatic input, even after NLLB translation.</li>
+                <li>Image captions, in contrast, are <strong>always in English</strong> — a clean, single-language channel.</li>
+                <li>BGE-M3 is built for multilingual semantic similarity. Query and captions live in the same space.</li>
+                <li>Adding SigLIP2 image features back on top of BGE captions <strong>did not help</strong> — text dominates.</li>
+            </ul>
+        </div>
+
+        <div class="discovery-bignum reveal" style="--reveal-delay: 400ms;">
+            <div class="label-before">Top-1 Accuracy · 15-lang avg</div>
+            <div class="stack">
+                <div>
+                    <div class="num">0.30</div>
+                    <div class="label-after" style="margin-top: 0.5rem;">SigLIP2 i-t</div>
+                </div>
+                <div class="arrow">→</div>
+                <div>
+                    <div class="num after">0.37</div>
+                    <div class="label-after" style="margin-top: 0.5rem; color: var(--rust);">BGE captions</div>
+                </div>
+            </div>
+            <div class="delta-card">
+                <div class="delta"><strong>+0.07</strong> absolute · <strong>+23%</strong> relative</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">04</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 5 — RESULTS (gauge visualization) -->
+<section class="slide" id="s5" aria-label="Results">
+    <div class="chrome-top">
+        <div>Results</div>
+        <div class="section-num">№ 04</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">Top-1 accuracy · 15-language average</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        Sixteen submissions, <em>one</em> winner.
+    </h2>
+
+    <div class="results-frame">
+        <div class="results-gauge reveal" style="--reveal-delay: 250ms;">
+            <div class="gauge-label">Where we land</div>
+            <svg class="gauge-svg" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">
+                <!-- Arc background -->
+                <path d="M 30 180 A 120 120 0 0 1 270 180" stroke="#D4C7B4" stroke-width="14" fill="none" stroke-linecap="round"/>
+                <!-- Our fill -->
+                <path d="M 30 180 A 120 120 0 0 1 118.96 67.27" stroke="#B8421B" stroke-width="14" fill="none" stroke-linecap="round"/>
+
+                <!-- Tick marks for 0, 0.5, 1 -->
+                <line x1="30" y1="195" x2="30" y2="205" stroke="#8B7765" stroke-width="1.5"/>
+                <line x1="150" y1="60" x2="150" y2="50" stroke="#8B7765" stroke-width="1.5"/>
+                <line x1="270" y1="195" x2="270" y2="205" stroke="#8B7765" stroke-width="1.5"/>
+
+                <text x="30" y="218" text-anchor="middle" font-family="Mulish" font-size="11" font-weight="700" fill="#8B7765" letter-spacing="0.1em">0.00</text>
+                <text x="150" y="42" text-anchor="middle" font-family="Mulish" font-size="11" font-weight="700" fill="#8B7765" letter-spacing="0.1em">0.50</text>
+                <text x="270" y="218" text-anchor="middle" font-family="Mulish" font-size="11" font-weight="700" fill="#8B7765" letter-spacing="0.1em">1.00</text>
+
+                <!-- Human pool marker @ 0.83 -->
+                <line x1="244.13" y1="91.7" x2="251.92" y2="83.5" stroke="#3D6B6E" stroke-width="2"/>
+                <text x="256" y="93" text-anchor="start" font-family="Mulish" font-size="10" font-weight="700" fill="#3D6B6E" letter-spacing="0.08em">HUMAN</text>
+                <text x="256" y="106" text-anchor="start" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#3D6B6E">0.83</text>
+
+                <!-- Top team @ 0.93 -->
+                <line x1="262.85" y1="135.94" x2="271.13" y2="133.43" stroke="#3D6B6E" stroke-width="2"/>
+                <text x="278" y="138" text-anchor="start" font-family="Mulish" font-size="10" font-weight="700" fill="#3D6B6E" letter-spacing="0.08em">TOP TEAM</text>
+                <text x="278" y="151" text-anchor="start" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#3D6B6E">0.93</text>
+
+                <!-- Our number, center -->
+                <text x="150" y="155" text-anchor="middle" font-family="Fraunces" font-size="64" font-weight="300" fill="#B8421B" font-style="italic" font-variation-settings="'opsz' 144">0.37</text>
+                <text x="150" y="180" text-anchor="middle" font-family="Mulish" font-size="11" font-weight="700" fill="#8B7765" letter-spacing="0.15em">OUR BEST</text>
+            </svg>
+            <p class="gauge-caption">
+                A robust ceiling — six ablation rounds could not raise it. The gap to human performance is <em>structural</em>, not engineering.
+            </p>
+        </div>
+
+        <div class="results-detail">
+            <ul class="strategy-list reveal" style="--reveal-delay: 400ms;">
+                <li><span class="name">SigLIP2 vanilla · no classifier</span><span class="score">0.28</span></li>
+                <li><span class="name">Original proposed pipeline · α=0.3</span><span class="score">0.30</span></li>
+                <li><span class="name">Pure enriched captions (R6)</span><span class="score">0.33</span></li>
+                <li><span class="name">BGE captions · always paraphrase</span><span class="score">0.35</span></li>
+                <li><span class="name">Cross-encoder reranker</span><span class="score">0.35</span></li>
+                <li><span class="name">3-channel blend (BGE + enriched + SigLIP2)</span><span class="score">0.36</span></li>
+                <li class="best"><span class="name">BGE-M3 captions · classifier-gated</span><span class="score">0.37</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">05</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 6 — ABLATIONS (vertical journey) -->
+<section class="slide" id="s6" aria-label="Ablations">
+    <div class="chrome-top">
+        <div>Ablations</div>
+        <div class="section-num">№ 05</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">Six rounds · one ceiling</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        We tried six different ways to break <em>0.37</em>. None worked.
+    </h2>
+
+    <div class="ablation-frame">
+        <ul class="ablation-list reveal" style="--reveal-delay: 250ms;">
+            <li class="ablation-item win">
+                <span class="marker">i</span>
+                <div class="body">
+                    <div class="title">BGE captions beat SigLIP2 image–text</div>
+                    <div class="verdict">Switch from image–text alignment to caption matching.</div>
+                </div>
+                <span class="score-pill">0.30 → 0.37</span>
+            </li>
+            <li class="ablation-item">
+                <span class="marker">ii</span>
+                <div class="body">
+                    <div class="title">Paraphraser size doesn't matter</div>
+                    <div class="verdict">Phi-3.5-mini (3.8 B) ≡ Qwen2.5-7B-Instruct.</div>
+                </div>
+                <span class="score-pill">0.37 = 0.37</span>
+            </li>
+            <li class="ablation-item loss">
+                <span class="marker">iii</span>
+                <div class="body">
+                    <div class="title">Cross-encoder reranker hurts</div>
+                    <div class="verdict">BGE-reranker-v2-m3 underperforms the bi-encoder.</div>
+                </div>
+                <span class="score-pill">0.35 (−0.02)</span>
+            </li>
+            <li class="ablation-item">
+                <span class="marker">iv</span>
+                <div class="body">
+                    <div class="title">PT-BR fix &amp; soft blending</div>
+                    <div class="verdict">Re-routing PT-BR through NLLB and softening boundaries — no gain.</div>
+                </div>
+                <span class="score-pill">0.36–0.37</span>
+            </li>
+            <li class="ablation-item">
+                <span class="marker">v</span>
+                <div class="body">
+                    <div class="title">Threshold sweep stays flat</div>
+                    <div class="verdict">For any τ ≥ 0.60, score holds at 0.37.</div>
+                </div>
+                <span class="score-pill">flat 0.37</span>
+            </li>
+            <li class="ablation-item loss">
+                <span class="marker">vi</span>
+                <div class="body">
+                    <div class="title">Idiom-aware caption enrichment hurts</div>
+                    <div class="verdict">Phi-3.5 adds symbolic context to captions — score drops.</div>
+                </div>
+                <span class="score-pill">0.33 (−0.04)</span>
+            </li>
+        </ul>
+
+        <div class="ablation-narrative reveal" style="--reveal-delay: 500ms;">
+            <span class="nq">"</span>
+            <div class="lead-num">0.37<span class="stub">ceiling</span></div>
+            <p class="lead-text">
+                A <strong>robust ceiling</strong> for text-caption matching on this task. The limit isn't the model — it's the modality.
+            </p>
+            <div class="signoff">— Ablation diagnosis · May 2026</div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">06</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 7 — CONCLUSIONS -->
+<section class="slide" id="s7" aria-label="Conclusions">
+    <div class="chrome-top">
+        <div>Conclusions</div>
+        <div class="section-num">№ 06</div>
+    </div>
+
+    <div class="section-tag reveal" style="--reveal-delay: 0ms;">The visual metaphor gap</div>
+    <h2 class="slide-headline reveal" style="--reveal-delay: 100ms;">
+        Captions describe scenes. Idioms describe <em>concepts</em>. That's the gap.
+    </h2>
+    <p class="slide-deck reveal" style="--reveal-delay: 200ms;">
+        A figurative image of "bad apple" shows one rotten apple corrupting others. Its caption describes the apples — not the concept of bad influence. No text model bridges that.
+    </p>
+
+    <div class="conc-frame">
+        <div class="conc-col reveal" style="--reveal-delay: 300ms;">
+            <h3>What worked <span class="num">i.</span></h3>
+            <ul>
+                <li><strong>Classifier-gated query selection</strong> — paraphrase for idiomatic, original for literal. <span class="num-tag">+0.07</span> over the proposed pipeline.</li>
+                <li><strong>BGE-M3 over SigLIP2</strong> for the text channel — multilingual + English caption alignment beats fragmented vision-text.</li>
+                <li><strong>94.1% sense classification</strong> from a single calibrated LR head on top of frozen BGE-M3.</li>
+                <li><strong>Lean compute</strong> — 3.5 GB peak VRAM, frozen encoders, full 15-language inference in minutes.</li>
+            </ul>
+        </div>
+
+        <div class="conc-col reveal" style="--reveal-delay: 450ms;">
+            <h3>Limits &amp; what's next <span class="num">ii.</span></h3>
+            <ul>
+                <li><strong>0.37 ≪ 0.83 human</strong> — six ablation rounds confirmed the ceiling is structural, not engineering.</li>
+                <li>The next jump needs <strong>cross-modal reasoning over images</strong>, not better text-text similarity.</li>
+                <li>Plausible directions: vision-language models with metaphor priors (GPT-4V, LLaVA-Next), symbol-bank retrieval.</li>
+                <li>Code &amp; full submission history — <span class="num-tag">YZV405E_2526_100</span>.</li>
+            </ul>
+        </div>
+
+        <div class="thanks reveal" style="--reveal-delay: 650ms;">
+            <div class="closing">Thank you — <em>questions?</em></div>
+            <div class="contact">
+                Group 100 · YZV405E<br>
+                Sözer · Öz · Kırmızı
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>AdMIRe 2.0 · Group 100</span>
+        <span class="pagination"><span class="num">07</span> <span class="total">of 07</span></span>
+    </div>
+</section>
+
+<div class="progress-bar" id="progressBar" aria-hidden="true"></div>
+<div class="keyboard-hint" id="keyboardHint">
+    <kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>1</kbd>–<kbd>7</kbd> jump · <kbd>P</kbd> print
+</div>
+
+<script>
+(() => {
+    'use strict';
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const progressBar = document.getElementById('progressBar');
+    const hint = document.getElementById('keyboardHint');
+    let current = 0, touchStartX = 0, touchStartY = 0;
+
+    function updateProgress() {
+        progressBar.style.width = (((current + 1) / slides.length) * 100) + '%';
+    }
+    function activate(index) {
+        if (index < 0 || index >= slides.length) return;
+        current = index;
+        slides[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        slides.forEach((s, i) => s.classList.toggle('active', i === index));
+        updateProgress();
+        history.replaceState(null, '', '#s' + (index + 1));
+    }
+    function go(delta) { activate(Math.max(0, Math.min(slides.length - 1, current + delta))); }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.target.matches('input, textarea')) return;
+        const k = e.key;
+        if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'j' || k === 'l') { e.preventDefault(); go(1); }
+        else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'k' || k === 'h') { e.preventDefault(); go(-1); }
+        else if (k === 'Home') { e.preventDefault(); activate(0); }
+        else if (k === 'End') { e.preventDefault(); activate(slides.length - 1); }
+        else if (/^[1-9]$/.test(k)) { const i = parseInt(k, 10) - 1; if (i < slides.length) activate(i); }
+        else if (k === 'p' || k === 'P') { e.preventDefault(); window.print(); }
+        else if (k === '?') { hint.classList.toggle('visible'); }
+    });
+
+    let wheelLock = false;
+    document.addEventListener('wheel', (e) => {
+        if (wheelLock || Math.abs(e.deltaY) < 30) return;
+        wheelLock = true;
+        go(e.deltaY > 0 ? 1 : -1);
+        setTimeout(() => { wheelLock = false; }, 700);
+    }, { passive: true });
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+        else if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx)) go(dy < 0 ? 1 : -1);
+    }, { passive: true });
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const idx = slides.indexOf(entry.target);
+            if (entry.intersectionRatio > 0.5) {
+                slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+                current = idx;
+                updateProgress();
+            }
+        });
+    }, { threshold: [0, 0.5, 0.9] });
+    slides.forEach(s => io.observe(s));
+
+    const hash = window.location.hash.match(/^#s(\d+)$/);
+    if (hash) {
+        const i = parseInt(hash[1], 10) - 1;
+        if (i >= 0 && i < slides.length) setTimeout(() => activate(i), 50);
+        else activate(0);
+    } else activate(0);
+
+    setTimeout(() => hint.classList.add('visible'), 800);
+    setTimeout(() => hint.classList.remove('visible'), 5000);
+})();
+</script>
+</body>
+</html>

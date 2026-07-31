@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Presentation Script — AdMIRe 2.0 · Group 100</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --paper: #FAF8F3;
+    --paper-deep: #F2EFE7;
+    --paper-soft: #FDFBF6;
+    --ink: #18181B;
+    --ink-soft: #2A2A2D;
+    --muted: #6E6E73;
+    --rule: #D9D5CB;
+    --accent: #8B2E2E;
+    --accent-bg: #F5E8E8;
+    --hazar: #8B2E2E;
+    --faruk: #1F5959;
+    --enis: #7A5C1E;
+    --qa: #4A3F6B;
+
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: var(--serif);
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
+    font-size: 17px;
+    font-feature-settings: 'liga' 1, 'kern' 1;
+}
+
+.page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+}
+
+/* HEADER */
+.cover-head {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.cover-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.cover-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.85rem, 4.5vw, 2.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem 0;
+}
+
+.cover-title em { font-style: italic; color: var(--accent); }
+
+.cover-deck {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+    color: var(--muted);
+    margin: 0;
+}
+
+/* META */
+.meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.25rem 0 2.5rem 0;
+    padding: 1rem 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+}
+
+.meta .item {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.meta .item .val {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* HOW TO READ */
+.how-to {
+    margin: 0 0 2.5rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--paper-soft);
+    border: 1px dashed var(--rule);
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+.how-to strong { color: var(--ink); font-weight: 600; }
+
+.how-to-head {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+/* SPEAKER SECTIONS */
+.speaker {
+    margin: 2.5rem 0;
+    padding: 1.5rem 1.5rem 1.5rem 1.75rem;
+    border-left: 4px solid var(--accent);
+    background: var(--paper-soft);
+    border-radius: 0 4px 4px 0;
+    page-break-inside: avoid;
+}
+
+.speaker.hazar { border-left-color: var(--hazar); }
+.speaker.faruk { border-left-color: var(--faruk); }
+.speaker.enis { border-left-color: var(--enis); }
+.speaker.qa { border-left-color: var(--qa); background: transparent; padding-left: 1.5rem; }
+
+.speaker-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.speaker-name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.4rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.speaker-name .part {
+    color: var(--accent);
+    font-style: italic;
+    margin-right: 0.4rem;
+}
+
+.speaker.hazar .speaker-name .part { color: var(--hazar); }
+.speaker.faruk .speaker-name .part { color: var(--faruk); }
+.speaker.enis .speaker-name .part { color: var(--enis); }
+.speaker.qa .speaker-name .part { color: var(--qa); }
+
+.speaker-budget {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* SLIDE BLOCKS */
+.slide-block {
+    margin-top: 1.75rem;
+    page-break-inside: avoid;
+}
+
+.slide-block:first-of-type { margin-top: 0; }
+
+.slide-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.slide-tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+}
+
+.slide-tag .num {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.12rem 0.45rem;
+    margin-right: 0.5rem;
+    border-radius: 2px;
+}
+
+.slide-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--muted);
+    font-weight: 400;
+    margin: 0;
+}
+
+.slide-budget {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.speaker.hazar .slide-budget { color: var(--hazar); }
+.speaker.faruk .slide-budget { color: var(--faruk); }
+.speaker.enis .slide-budget { color: var(--enis); }
+
+/* THE SCRIPT TEXT — the main attraction */
+.script {
+    margin: 0.75rem 0 0 0;
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.7;
+    color: var(--ink);
+    font-weight: 400;
+}
+
+.script p {
+    margin: 0 0 0.85rem 0;
+}
+
+.script p:last-child {
+    margin-bottom: 0;
+}
+
+.script em {
+    font-style: italic;
+    color: var(--accent);
+}
+
+.speaker.faruk .script em { color: var(--faruk); }
+.speaker.enis .script em { color: var(--enis); }
+
+.script strong {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.script .turkish {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--enis);
+    font-weight: 500;
+    background: #F2EBD7;
+    padding: 0.02em 0.25em;
+    border-radius: 2px;
+}
+
+.script .pause {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--paper-deep);
+    padding: 0.05rem 0.35rem;
+    border-radius: 2px;
+    margin: 0 0.2rem;
+    vertical-align: 1px;
+}
+
+/* HANDOFFS */
+.handoff {
+    margin: 1.75rem 0;
+    padding: 0.85rem 1.25rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-align: center;
+    border-radius: 3px;
+    line-height: 1.5;
+}
+
+.handoff .arrow { color: var(--accent); margin: 0 0.4rem; font-weight: 600; }
+
+.handoff .quote {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--paper);
+    margin-top: 0.4rem;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* Q&A */
+.qa-prep h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 1.25rem 0 0.5rem 0;
+    letter-spacing: -0.01em;
+}
+
+.qa-item {
+    margin: 1.2rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.qa-item:last-child { border-bottom: none; }
+
+.qa-q {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--qa);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.45;
+}
+
+.qa-q::before {
+    content: 'Q. ';
+    font-family: var(--mono);
+    color: var(--muted);
+    margin-right: 0.3rem;
+    font-weight: 600;
+}
+
+.qa-a {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.qa-a::before {
+    content: 'A.';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+    font-style: normal;
+}
+
+.qa-a em { font-style: italic; color: var(--qa); }
+.qa-a strong { font-weight: 600; color: var(--ink); }
+
+/* TIPS */
+.tips {
+    margin-top: 2.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px dashed var(--rule);
+    background: var(--paper-soft);
+    border-radius: 3px;
+}
+
+.tips h3 {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+}
+
+.tips ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+.tips li { margin: 0.4rem 0; }
+.tips li strong { color: var(--ink); font-weight: 600; }
+
+/* FOOTER */
+.foot {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+/* PRINT */
+@page { size: A4; margin: 18mm 16mm; }
+
+@media print {
+    body { background: white; font-size: 16px; }
+    .page { padding: 0; max-width: 100%; }
+    .speaker { page-break-inside: avoid; }
+    .slide-block { page-break-inside: avoid; }
+    .qa-item { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover-head">
+    <div class="cover-eyebrow">Presentation Script · 20 May 2026</div>
+    <h1 class="cover-title">Multimodal Idiom Ranking with <em>Sense-Gated Caption Matching</em></h1>
+    <p class="cover-deck">YZV405E · Group 100 — Hazar Sözer, Faruk Öz, Enis Kırmızı</p>
+</header>
+
+<div class="meta">
+    <div class="item">Format<span class="val">6 min talk + 2 min Q&amp;A</span></div>
+    <div class="item">Slides<span class="val">7 total</span></div>
+    <div class="item">Speakers<span class="val">3 (Hazar · Faruk · Enis)</span></div>
+</div>
+
+<div class="how-to">
+    <div class="how-to-head">How to read this</div>
+    Each speaker section below is what you'll actually say, slide by slide, in full sentences. Read it out loud to time yourself — at a comfortable presenting pace this whole talk takes <strong>5 minutes 50 seconds</strong>, leaving a small buffer. Words in <em>italics</em> are the ones to lean on. <span class="pause">PAUSE</span> means take a one-beat breath. Don't memorize word-for-word — read it twice tonight, then own it tomorrow.
+</div>
+
+<!-- ===================== PART 1 — HAZAR ===================== -->
+<section class="speaker hazar">
+    <div class="speaker-head">
+        <div class="speaker-name"><span class="part">Part 1.</span>Hazar — Setup &amp; Architecture</div>
+        <div class="speaker-budget">~ 2:00 · slides 1–3</div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">01</span>Title</div>
+            <div class="slide-budget">0:15</div>
+        </div>
+        <div class="script">
+            <p>Hi everyone. We're Group 100 — I'm Hazar, that's Faruk, and that's Enis. Our project is multimodal idiom ranking — from the AdMIRe 2.0 task at the MWE workshop, EACL 2026.</p>
+        </div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">02</span>Task</div>
+            <div class="slide-budget">0:45</div>
+        </div>
+        <div class="script">
+            <p>So the task is this: given a sentence containing an idiom and five candidate images, we have to rank the images by how well they match the meaning the sentence intends.</p>
+
+            <p>Here's a quick example. Take the phrase <em>"bad apple"</em>. Literally, that's a rotten piece of fruit. But figuratively, it's one bad person whose behavior spreads to others. Same two words, completely different meaning — and only the sentence around it tells you which one is meant. <span class="pause">PAUSE</span></p>
+
+            <p>The dataset has fifteen languages and around twenty-six hundred sentences. But here's the catch — only English and Brazilian Portuguese have labeled training data. The other thirteen languages are completely zero-shot, we never see a labeled example. The competition metric is Top-1 accuracy, averaged across all fifteen languages.</p>
+        </div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">03</span>Pipeline</div>
+            <div class="slide-budget">1:00</div>
+        </div>
+        <div class="script">
+            <p>Here's how our pipeline works. Four phases, all running sequentially on a single GPU, peak memory just <em>3.5 gigabytes</em>.</p>
+
+            <p><strong>Phase A is text prep.</strong> The sentence gets translated to English by NLLB-200. Then Phi-3.5-mini rewrites that English sentence, replacing the idiom with its plain-language meaning. We call that rewrite the paraphrase.</p>
+
+            <p><strong>Phase B is encoding.</strong> BGE-M3 embeds three things — the English sentence, the paraphrase, and the five image captions.</p>
+
+            <p><strong>Phase C is the sense decision.</strong> A calibrated logistic regression — ninety-four percent accurate on the English dev set — outputs the probability that the sentence is idiomatic. A gate uses that probability to pick either the paraphrase or the original sentence as the final query.</p>
+
+            <p><strong>Phase D is the ranking.</strong> Cosine similarity between the chosen query and each caption. Highest score wins. <span class="pause">PAUSE</span></p>
+
+            <p>One important point: every encoder in this pipeline is frozen. The only trained piece in the whole system is that small LR head.</p>
+        </div>
+    </div>
+</section>
+
+<div class="handoff">
+    HAZAR <span class="arrow">→</span> FARUK
+    <span class="quote">"Now Faruk will walk us through what we actually found."</span>
+</div>
+
+<!-- ===================== PART 2 — FARUK ===================== -->
+<section class="speaker faruk">
+    <div class="speaker-head">
+        <div class="speaker-name"><span class="part">Part 2.</span>Faruk — Findings &amp; Results</div>
+        <div class="speaker-budget">~ 2:00 · slides 4–5</div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">04</span>Discovery</div>
+            <div class="slide-budget">0:55</div>
+        </div>
+        <div class="script">
+            <p>The biggest single finding in the whole project came from one substitution.</p>
+
+            <p>Our original proposal used SigLIP2 — a vision-language model that aligns images and text directly. With that, we scored <em>0.30</em>.</p>
+
+            <p>We replaced SigLIP2 with BGE-M3 doing pure text matching against the English image captions. The score jumped to <em>0.37</em>. That's a twenty-three percent relative improvement, just from one design change. <span class="pause">PAUSE</span></p>
+
+            <p>Two reasons this worked. First, SigLIP2's text encoder is mostly trained on English image-text pairs, so it gets weak on translated, idiomatic input. Second, the image captions are always in English — that gives us a clean, single-language channel that BGE-M3 was actually built for.</p>
+
+            <p>And here's the interesting part: when we added SigLIP2 image features <em>back on top</em> of the BGE caption matching, it didn't help at all. The text channel alone was enough.</p>
+        </div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">05</span>Results</div>
+            <div class="slide-budget">1:05</div>
+        </div>
+        <div class="script">
+            <p>This is the full picture. Every strategy we tried, ranked from worst to best.</p>
+
+            <p>Vanilla SigLIP2 with no classifier scored 0.28. Our original proposed pipeline scored 0.30. Then BGE captions started entering the picture. Always-paraphrase BGE gave us 0.35. A cross-encoder reranker — which usually beats bi-encoders on retrieval — actually hurt here, also 0.35.</p>
+
+            <p>A three-channel blend of original captions, enriched captions, and SigLIP2 image features got us to 0.36. <span class="pause">PAUSE</span></p>
+
+            <p>Two strategies tied at <em>0.37</em>. One was a SigLIP plus BGE ensemble — adding the vision channel back. The other was our chosen winner: BGE captions with the classifier-gated query selection. Since they tied, we picked the simpler one. Occam's razor.</p>
+
+            <p>For reference, on the previous version of this task — AdMIRe 1.0 — human raters scored 0.83, and the top SemEval team scored 0.93. So we're well below human performance. Enis will explain why in a moment.</p>
+        </div>
+    </div>
+</section>
+
+<div class="handoff">
+    FARUK <span class="arrow">→</span> ENIS
+    <span class="quote">"Now Enis will close — what we tested, and what we found after we submitted."</span>
+</div>
+
+<!-- ===================== PART 3 — ENIS ===================== -->
+<section class="speaker enis">
+    <div class="speaker-head">
+        <div class="speaker-name"><span class="part">Part 3.</span>Enis — Ablations &amp; Diagnosis</div>
+        <div class="speaker-budget">~ 2:00 · slides 6–7</div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">06</span>Ablations</div>
+            <div class="slide-budget">0:55</div>
+        </div>
+        <div class="script">
+            <p>We ran six rounds of ablation. Every single round was an attempt to push past 0.37 — and every single one failed.</p>
+
+            <p>Round one was the backbone switch Faruk just described — that's the only one that actually moved the score.</p>
+
+            <p>In round two, we tried a bigger paraphraser, Qwen-7B instead of Phi-3.5. Same exact score, 0.37. So paraphrase quality is not the bottleneck.</p>
+
+            <p>In round three, we replaced the bi-encoder with a cross-encoder reranker. That actually hurt by 0.02. We took it as diagnostic — this task isn't standard retrieval.</p>
+
+            <p>Round four fixed a Portuguese routing bug and tried soft blending the literal and figurative scores. No measurable gain. Round five was a threshold sweep — completely flat at 0.37 for any threshold above 0.60.</p>
+
+            <p>Round six, we enriched the captions with extra idiom-aware context, generated by Phi-3.5. That hurt by 0.04. <span class="pause">PAUSE</span></p>
+
+            <p>So 0.37 just wouldn't move. We needed a different explanation for why.</p>
+        </div>
+    </div>
+
+    <div class="slide-block">
+        <div class="slide-head">
+            <div class="slide-tag"><span class="num">07</span>Diagnosis</div>
+            <div class="slide-budget">1:00</div>
+        </div>
+        <div class="script">
+            <p>When we wrote our report, we attributed the 0.37 ceiling to one cause — what we called the <em>visual metaphor gap</em>. Captions describe what an image literally shows — a rotten apple on a table. Idioms describe what it means — one bad influence corrupting others. No text-to-text model can bridge that gap.</p>
+
+            <p>But last night, we actually opened up NLLB's translation output for the first time and read what it had been producing. And we found a <em>second</em> cause we hadn't tested.</p>
+
+            <p>For example, in Turkish, the idiom <span class="turkish">"çürük elma"</span> — which literally means rotten apple — gets translated by NLLB to <span class="turkish">"rotten elmas"</span>. The word <span class="turkish">"elma"</span> stays in Turkish. The system half-translates the idiom and gives up. <span class="pause">PAUSE</span> We saw the same pattern in Russian, Chinese, and Spanish.</p>
+
+            <p>So the 0.37 ceiling actually has <em>two compounding causes</em>: translation, and modality. Future work splits cleanly — a stronger machine translation model for the upstream gap, and vision-language models with metaphor priors, like GPT-4V or LLaVA-Next, for the downstream one.</p>
+
+            <p>Code and full ablations are on our repo. Happy to take questions.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== Q&A ===================== -->
+<section class="speaker qa qa-prep">
+    <div class="speaker-head">
+        <div class="speaker-name"><span class="part">Q&amp;A.</span>All three — anticipated questions</div>
+        <div class="speaker-budget">~ 2:00</div>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Why didn't you fine-tune anything?</p>
+        <p class="qa-a">Two reasons. First, we had a hard 12-gigabyte VRAM budget, and sequential model loading already gets us to 3.5 gigabytes peak — fine-tuning BGE-M3 needs much more memory than that. Second, only English and Brazilian Portuguese have labeled training data, so we couldn't meaningfully fine-tune for the other thirteen languages anyway. Keeping everything frozen means the same pipeline serves all fifteen languages without retraining.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Why did SigLIP2 do worse than text-only BGE?</p>
+        <p class="qa-a">SigLIP2's text encoder is trained primarily on English image-text pairs from the web. When you feed it translated, idiomatic input, it underperforms a dedicated multilingual encoder like BGE-M3. The captions, on the other hand, are always in English — they give BGE-M3 a clean, single-language signal it was actually designed for.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Did you check that translation actually preserves the idiom?</p>
+        <p class="qa-a">Yes — and that's exactly what slide 7 is about. We audited NLLB's output after submission, and we found it frequently corrupts idiomatic content. Turkish was the worst case — sometimes the compound is left untranslated entirely, sometimes the surrounding context gets hallucinated. That's the second source of the ceiling we mentioned.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Why 0.37 and not closer to the 0.83 human score?</p>
+        <p class="qa-a">Two compounding gaps. Translation loses signal upstream — sometimes catastrophically. The modality gap loses signal downstream. Even if we had a perfect translator, we'd still hit the modality wall — and even with perfect modality reasoning, NLLB's broken translations would limit us. The two problems stack.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Did you try retrieval over a symbol bank or external knowledge?</p>
+        <p class="qa-a">Not directly. Round six was the closest — we added an LLM-generated symbolic sentence to each caption to give it more abstract context. That actually hurt the score by 0.04. We think the right move is cross-modal reasoning <em>over the image itself</em>, not adding more text — which is why we're pointing toward vision-language models for future work.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">Why is the cross-encoder worse than the bi-encoder?</p>
+        <p class="qa-a">Cross-encoders are great when the relevance task is over semantically similar text. Here, the figurative caption describes a scene that <em>depicts</em> an abstract concept — there's a literal-vs-figurative gap. The cross-encoder sees that semantic gap and scores it low. The bi-encoder cosine is more forgiving, and that's actually helpful here.</p>
+    </div>
+
+    <div class="qa-item">
+        <p class="qa-q">What's the runtime?</p>
+        <p class="qa-a">After translations and embeddings are cached — that's a one-time cost of a few hours — re-ranking the full fifteen-language test set takes just a few minutes. Caching is what makes the ablation work feasible.</p>
+    </div>
+</section>
+
+<!-- ===================== TIPS ===================== -->
+<section class="tips">
+    <h3>Practice notes</h3>
+    <ul>
+        <li><strong>6:00 is a hard limit.</strong> Practice with a stopwatch. The guideline says the time limit is enforced.</li>
+        <li><strong>If you're running long</strong> (over 6:00 in rehearsal), drop the cross-encoder sentence on slide 5 and shorten round 5 on slide 6 to "we also did a threshold sweep — no improvement."</li>
+        <li><strong>If you're running short</strong> (under 5:30), expand the "bad apple" example on slide 4 with the figurative vs literal images.</li>
+        <li><strong>Handoffs should be one second each.</strong> Don't dwell — the next speaker should already be moving toward the laptop.</li>
+        <li><strong>The Turkish example on slide 7 is the most important moment of the talk.</strong> Pause one full beat after saying <span class="turkish">"rotten elmas"</span> — the audience is Turkish, they'll catch the joke immediately, and that pause earns the laugh.</li>
+        <li><strong>Don't read the slides during the talk.</strong> The slides are there to support you; you carry the story. Look at the audience, not the screen.</li>
+        <li><strong>If a TA asks about translation quality</strong> (likely), Enis takes it — slide 7 already answers it, and we have the receipts.</li>
+    </ul>
+</section>
+
+<div class="foot">
+    Group 100 · YZV405E_2526_100 · 20 May 2026 · Demo at ITU
+</div>
+
+</div>
+</body>
+</html>

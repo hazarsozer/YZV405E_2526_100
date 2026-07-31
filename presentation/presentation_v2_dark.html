@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdMIRe 2.0 — Sense-Gated Caption Matching · v2 Dark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   THEME — Dark Technical / Data Engineering aesthetic
+   ============================================================ */
+:root {
+    --bg: #0A0E1A;
+    --bg-elev: #131927;
+    --bg-card: #161D2E;
+    --border: #1F2937;
+    --border-soft: #1A2030;
+    --text: #E5E7EB;
+    --text-dim: #94A3B8;
+    --text-muted: #64748B;
+    --cyan: #22D3EE;
+    --cyan-dim: #0891B2;
+    --amber: #FBBF24;
+    --emerald: #10B981;
+    --rose: #F43F5E;
+    --grid-line: rgba(34, 211, 238, 0.06);
+
+    --display: 'Space Grotesk', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --body: 'Inter', sans-serif;
+
+    --title-size: clamp(2rem, 5vw, 4.5rem);
+    --h2-size: clamp(1.5rem, 3.4vw, 2.6rem);
+    --h3-size: clamp(1.1rem, 1.8vw, 1.4rem);
+    --body-size: clamp(0.85rem, 1.25vw, 1.05rem);
+    --small-size: clamp(0.7rem, 0.95vw, 0.85rem);
+    --micro-size: clamp(0.62rem, 0.78vw, 0.72rem);
+
+    --slide-padding: clamp(2rem, 4.5vw, 4.5rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+    font-family: var(--body);
+    color: var(--text);
+    background: var(--bg);
+    font-size: var(--body-size);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: var(--slide-padding);
+    background: var(--bg);
+}
+
+/* grid texture on every slide */
+.slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: 0 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+}
+
+.slide::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, var(--bg) 80%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.slide > * { position: relative; z-index: 1; }
+
+/* ============================================================
+   CHROME
+   ============================================================ */
+.chrome-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-bottom: clamp(0.6rem, 1.2vw, 1rem);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: clamp(1.2rem, 2.5vw, 2.5rem);
+}
+
+.chrome-top .section-label { color: var(--cyan); }
+.chrome-top .section-label::before { content: '[ '; color: var(--text-muted); }
+.chrome-top .section-label::after { content: ' ]'; color: var(--text-muted); }
+
+.chrome-bottom {
+    margin-top: auto;
+    padding-top: clamp(0.8rem, 1.5vw, 1.25rem);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+}
+
+.chrome-bottom .page-num { color: var(--cyan); font-weight: 600; }
+.chrome-bottom .page-num .total { color: var(--text-muted); font-weight: 400; }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.eyebrow {
+    font-family: var(--mono);
+    font-size: var(--small-size);
+    color: var(--cyan);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: clamp(0.6rem, 1.2vw, 1rem);
+}
+
+.slide-title {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: var(--h2-size);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin: 0;
+}
+
+.slide-title .accent { color: var(--cyan); }
+.slide-title .mono { font-family: var(--mono); font-weight: 600; }
+
+.slide-subtitle {
+    font-family: var(--body);
+    font-size: var(--body-size);
+    color: var(--text-dim);
+    margin-top: clamp(0.6rem, 1.2vw, 1rem);
+    max-width: 75ch;
+    line-height: 1.65;
+}
+
+/* ============================================================
+   SLIDE 1 — TITLE (terminal-inspired)
+   ============================================================ */
+.title-slide { justify-content: center; }
+
+.title-terminal {
+    max-width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.term-line {
+    font-family: var(--mono);
+    font-size: var(--small-size);
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+.term-line .prompt { color: var(--cyan); }
+.term-line .flag { color: var(--amber); }
+
+.title-main {
+    font-family: var(--display);
+    font-size: var(--title-size);
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin: clamp(0.5rem, 1vw, 1rem) 0;
+}
+
+.title-main .accent {
+    color: var(--cyan);
+    font-style: italic;
+    font-weight: 500;
+}
+
+.title-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    padding-top: clamp(1rem, 2vw, 1.5rem);
+    border-top: 1px solid var(--border);
+    max-width: 900px;
+}
+
+.title-meta-grid .item .key {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+}
+
+.title-meta-grid .item .val {
+    font-family: var(--display);
+    font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.title-meta-grid .item .val .sep { color: var(--cyan); margin: 0 0.4rem; }
+
+/* ============================================================
+   SLIDE 2 — TASK
+   ============================================================ */
+.task-frame {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    flex: 1;
+    align-items: center;
+}
+
+.task-narrative .lead-quote {
+    font-family: var(--display);
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+    line-height: 1.45;
+    color: var(--text);
+    margin: clamp(0.8rem, 1.5vw, 1.25rem) 0 clamp(1.2rem, 2vw, 1.75rem) 0;
+    font-weight: 400;
+    max-width: 36ch;
+}
+
+.task-narrative .lead-quote .accent { color: var(--cyan); }
+.task-narrative .lead-quote .target {
+    background: rgba(251, 191, 36, 0.15);
+    color: var(--amber);
+    padding: 0 0.3em;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.stat-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.6rem, 1.2vw, 1rem);
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: clamp(0.75rem, 1.5vw, 1.1rem);
+    border-radius: 4px;
+    border-left: 2px solid var(--cyan);
+}
+
+.stat-card .num {
+    font-family: var(--mono);
+    font-size: clamp(1.3rem, 2.2vw, 1.85rem);
+    color: var(--cyan);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.stat-card .label {
+    font-family: var(--body);
+    font-size: var(--small-size);
+    color: var(--text-dim);
+    margin-top: 0.4rem;
+    line-height: 1.4;
+}
+
+.task-example {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: clamp(1.2rem, 2.2vw, 1.75rem);
+}
+
+.task-example .ex-label {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.task-example .ex-sentence {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    color: var(--text);
+    line-height: 1.55;
+    padding-bottom: clamp(1rem, 1.8vw, 1.3rem);
+    margin-bottom: clamp(1rem, 1.8vw, 1.3rem);
+    border-bottom: 1px solid var(--border);
+}
+
+.task-example .ex-sentence .target {
+    background: rgba(251, 191, 36, 0.18);
+    color: var(--amber);
+    padding: 0.05em 0.3em;
+    border-radius: 2px;
+    font-style: normal;
+    font-weight: 500;
+}
+
+.task-example .img-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(0.3rem, 0.6vw, 0.5rem);
+}
+
+.task-example .img-slot {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-card) 100%);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: clamp(0.3rem, 0.6vw, 0.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.task-example .img-slot .rank {
+    font-family: var(--mono);
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.task-example .img-slot .cat {
+    font-family: var(--mono);
+    font-size: clamp(0.55rem, 0.7vw, 0.65rem);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+}
+
+.task-example .img-slot.gold {
+    border-color: var(--cyan);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.02) 100%);
+}
+
+.task-example .img-slot.gold .rank { color: var(--cyan); }
+
+/* ============================================================
+   SLIDE 3 — PIPELINE (system architecture diagram)
+   ============================================================ */
+.pipeline-frame { display: flex; flex-direction: column; flex: 1; gap: clamp(1.2rem, 2.5vw, 2rem); justify-content: center; }
+
+.pipeline-svg-container { width: 100%; }
+
+.pipeline-svg-container svg {
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    display: block;
+}
+
+.pipeline-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.pipeline-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: clamp(0.75rem, 1.5vw, 1.1rem);
+    border-radius: 0 0 4px 4px;
+}
+
+.pipeline-stat .key {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+}
+
+.pipeline-stat .val {
+    font-family: var(--mono);
+    font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.pipeline-stat .val .unit { color: var(--cyan); font-weight: 400; font-size: 0.7em; }
+
+.pipeline-stat .desc {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--text-dim);
+    line-height: 1.45;
+    margin-top: 0.4rem;
+}
+
+/* ============================================================
+   SLIDE 4 — DISCOVERY (with bar chart)
+   ============================================================ */
+.discovery-frame {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    flex: 1;
+    align-items: center;
+}
+
+.discovery-text .lead {
+    font-family: var(--display);
+    font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+    color: var(--text);
+    margin: 0 0 clamp(1rem, 2vw, 1.5rem) 0;
+    line-height: 1.5;
+    max-width: 34ch;
+}
+
+.discovery-text .lead .accent { color: var(--cyan); font-weight: 500; }
+
+.discovery-text ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.6rem, 1.1vw, 0.9rem);
+}
+
+.discovery-text li {
+    font-size: var(--small-size);
+    line-height: 1.55;
+    color: var(--text-dim);
+    padding-left: clamp(1.2rem, 1.8vw, 1.4rem);
+    position: relative;
+}
+
+.discovery-text li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    font-size: 0.85em;
+}
+
+.discovery-text li strong { color: var(--text); font-weight: 600; }
+
+.discovery-chart {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: clamp(1.25rem, 2.2vw, 1.75rem);
+}
+
+.discovery-chart .ch-label {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: clamp(0.75rem, 1.5vw, 1.2rem);
+}
+
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.65rem, 1.2vw, 0.95rem);
+    margin: clamp(0.5rem, 1vw, 0.75rem) 0;
+}
+
+.bar-row {
+    display: grid;
+    grid-template-columns: clamp(115px, 17vw, 165px) 1fr clamp(50px, 6vw, 70px);
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 0.8rem);
+}
+
+.bar-row .name {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-dim);
+    text-align: right;
+    letter-spacing: 0.01em;
+}
+
+.bar-row .bar-track {
+    height: clamp(12px, 1.8vw, 18px);
+    background: var(--border-soft);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.bar-row .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan-dim) 0%, var(--cyan) 100%);
+    border-radius: 2px;
+    transition: width 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--bar-delay, 400ms);
+    width: 0;
+}
+
+.slide.active .bar-row .bar-fill { width: var(--bar-width); }
+
+.bar-row.best .name { color: var(--cyan); font-weight: 600; }
+.bar-row.best .bar-fill { background: linear-gradient(90deg, var(--cyan) 0%, #67E8F9 100%); box-shadow: 0 0 12px rgba(34, 211, 238, 0.4); }
+.bar-row.dim .bar-fill { background: linear-gradient(90deg, #475569 0%, #64748B 100%); }
+
+.bar-row .value {
+    font-family: var(--mono);
+    font-size: var(--small-size);
+    color: var(--text);
+    font-weight: 600;
+    text-align: right;
+}
+
+.bar-row.best .value { color: var(--cyan); }
+.bar-row.dim .value { color: var(--text-muted); }
+
+.discovery-chart .delta-note {
+    margin-top: clamp(0.75rem, 1.5vw, 1.2rem);
+    padding-top: clamp(0.75rem, 1.5vw, 1.2rem);
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: var(--small-size);
+    color: var(--text-dim);
+}
+
+.discovery-chart .delta-note .accent { color: var(--cyan); font-weight: 600; }
+
+/* ============================================================
+   SLIDE 5 — RESULTS (full bar chart visualization)
+   ============================================================ */
+.results-frame {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.results-main-chart {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.results-main-chart .ch-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding-bottom: clamp(0.5rem, 1vw, 0.75rem);
+    border-bottom: 1px solid var(--border);
+}
+
+.results-main-chart .ch-title {
+    font-family: var(--display);
+    font-size: var(--h3-size);
+    color: var(--text);
+    font-weight: 500;
+}
+
+.results-main-chart .ch-meta {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.results-ref-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+.ref-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: clamp(0.75rem, 1.5vw, 1.1rem);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 1.2vw, 1rem);
+}
+
+.ref-card .ref-key {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    flex: 1;
+}
+
+.ref-card .ref-val {
+    font-family: var(--mono);
+    font-size: clamp(1.3rem, 1.9vw, 1.6rem);
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.ref-card.us { border-color: var(--cyan); border-left: 3px solid var(--cyan); background: rgba(34, 211, 238, 0.05); }
+.ref-card.us .ref-val { color: var(--cyan); }
+.ref-card.us .ref-key { color: var(--cyan); }
+
+/* ============================================================
+   SLIDE 6 — ABLATIONS (timeline visualization)
+   ============================================================ */
+.ablation-frame {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.ablation-timeline {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    position: relative;
+    padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(1rem, 2vw, 1.5rem) 0;
+}
+
+.ablation-timeline::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    left: 8.33%;
+    right: 8.33%;
+    height: 1px;
+    background: var(--border);
+}
+
+.timeline-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+    position: relative;
+    padding: 0 clamp(0.3rem, 0.6vw, 0.5rem);
+}
+
+.timeline-node .dot {
+    width: clamp(10px, 1.4vw, 14px);
+    height: clamp(10px, 1.4vw, 14px);
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--text-muted);
+    position: absolute;
+    top: calc(clamp(-2.5rem, -5vw, -4rem) + 1.5rem - clamp(5px, 0.7vw, 7px));
+    z-index: 2;
+}
+
+.timeline-node.flat .dot { border-color: var(--text-muted); }
+.timeline-node.up .dot { border-color: var(--cyan); background: var(--cyan); box-shadow: 0 0 8px rgba(34, 211, 238, 0.5); }
+.timeline-node.down .dot { border-color: var(--rose); background: var(--bg); }
+
+.timeline-node .round {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--cyan);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.timeline-node .score {
+    font-family: var(--mono);
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1;
+}
+
+.timeline-node.up .score { color: var(--cyan); }
+.timeline-node.down .score { color: var(--rose); }
+
+.timeline-node .title {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--text);
+    text-align: center;
+    line-height: 1.35;
+    margin-top: 0.2rem;
+    font-weight: 500;
+}
+
+.timeline-node .desc {
+    font-family: var(--body);
+    font-size: var(--micro-size);
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+}
+
+.ablation-baseline-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: clamp(0.5rem, 1vw, 0.75rem) 0;
+    padding: clamp(0.5rem, 1vw, 0.75rem) 0;
+}
+
+.ablation-baseline-line .lbl {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ablation-baseline-line .dash {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--cyan) 0 4px, transparent 4px 8px);
+}
+
+.ablation-baseline-line .val {
+    font-family: var(--mono);
+    font-size: var(--small-size);
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+.ablation-conclusion {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.08) 0%, rgba(34, 211, 238, 0.02) 100%);
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    padding: clamp(0.9rem, 1.8vw, 1.4rem) clamp(1.1rem, 2vw, 1.75rem);
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 1.8vw, 1.5rem);
+}
+
+.ablation-conclusion .label {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ablation-conclusion .text {
+    font-family: var(--display);
+    font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+    line-height: 1.45;
+    color: var(--text);
+    flex: 1;
+}
+
+.ablation-conclusion .text strong { color: var(--cyan); font-family: var(--mono); }
+
+/* ============================================================
+   SLIDE 7 — CONCLUSIONS
+   ============================================================ */
+.conc-frame {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3.5rem);
+    align-items: start;
+    margin-top: clamp(0.5rem, 1vw, 0.75rem);
+}
+
+.conc-col h3 {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--cyan);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin: 0 0 clamp(0.75rem, 1.5vw, 1.2rem) 0;
+    padding-bottom: clamp(0.5rem, 1vw, 0.75rem);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+}
+
+.conc-col h3::before { content: '◇ '; color: var(--cyan); }
+
+.conc-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.65rem, 1.2vw, 1rem);
+}
+
+.conc-col li {
+    font-size: var(--small-size);
+    line-height: 1.55;
+    color: var(--text-dim);
+    padding-left: clamp(1.1rem, 1.5vw, 1.25rem);
+    position: relative;
+}
+
+.conc-col li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+}
+
+.conc-col li strong { color: var(--text); font-weight: 600; }
+
+.conc-col .num-tag {
+    font-family: var(--mono);
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+.thanks {
+    grid-column: 1 / -1;
+    margin-top: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding-top: clamp(0.6rem, 1.2vw, 1rem);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2rem;
+}
+
+.thanks .closing .accent { color: var(--cyan); }
+
+.thanks .contact {
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.6;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ============================================================
+   PROGRESS + KEYBOARD HINT
+   ============================================================ */
+.progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+    z-index: 100;
+    transition: width 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0;
+}
+
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.75rem, 1.5vw, 1.25rem);
+    right: clamp(0.75rem, 1.5vw, 1.25rem);
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 300ms ease;
+    z-index: 100;
+    pointer-events: none;
+    background: var(--bg-card);
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+
+.keyboard-hint.visible { opacity: 0.85; }
+
+.keyboard-hint kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    border-radius: 2px;
+    padding: 0.05rem 0.3rem;
+    font-family: var(--mono);
+    font-size: var(--micro-size);
+}
+
+/* ============================================================
+   REVEAL ANIMATIONS
+   ============================================================ */
+.slide .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+.slide.active .reveal {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@page {
+    size: 1280px 720px;
+    margin: 0;
+}
+
+@media print {
+    html, body { scroll-snap-type: none; height: auto; overflow: visible; background: var(--bg); }
+    .slide {
+        page-break-after: always;
+        break-after: page;
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+    }
+    .slide:last-child { page-break-after: auto; }
+    .slide .reveal { opacity: 1 !important; transform: none !important; }
+    .progress-bar, .keyboard-hint { display: none !important; }
+    .slide.active .bar-row .bar-fill,
+    .slide .bar-row .bar-fill { width: var(--bar-width) !important; transition: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    .slide .reveal { opacity: 1; transform: none; }
+}
+
+@media (max-height: 700px) {
+    :root { --slide-padding: clamp(1.25rem, 3.5vw, 3rem); }
+}
+
+@media (max-height: 600px) {
+    :root { --slide-padding: clamp(1rem, 3vw, 2rem); }
+    .keyboard-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — TITLE -->
+<section class="slide title-slide" id="s1" aria-label="Title">
+    <div class="title-terminal">
+        <div class="term-line reveal" style="--reveal-delay: 0ms;">
+            <span class="prompt">~</span> <span class="flag">--course</span> YZV405E <span class="flag">--group</span> 100 <span class="flag">--term</span> Spring-2026
+        </div>
+
+        <h1 class="title-main reveal" style="--reveal-delay: 150ms;">
+            Multimodal Idiom Ranking with <span class="accent">Sense-Gated Caption Matching</span>
+        </h1>
+
+        <div class="term-line reveal" style="--reveal-delay: 300ms;">
+            <span class="prompt">▸</span> AdMIRe 2.0 @ MWE-2026 (EACL Workshop) · 15 languages · zero-shot for 13
+        </div>
+
+        <div class="title-meta-grid reveal" style="--reveal-delay: 450ms;">
+            <div class="item">
+                <div class="key">// authors</div>
+                <div class="val">Hazar Sözer <span class="sep">·</span> Faruk Öz <span class="sep">·</span> Enis Kırmızı</div>
+            </div>
+            <div class="item">
+                <div class="key">// institution</div>
+                <div class="val">Istanbul Technical University<br>AI &amp; Data Engineering</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 2 — TASK -->
+<section class="slide" id="s2" aria-label="Task">
+    <div class="chrome-top">
+        <span class="section-label">01 · TASK</span>
+        <span>Rank by Meaning, Not by Look</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        Rank five images by what the idiom <span class="accent">actually means</span> in context.
+    </h2>
+
+    <div class="task-frame">
+        <div class="task-narrative reveal" style="--reveal-delay: 150ms;">
+            <p class="lead-quote">
+                An idiom — <span class="target">bad apple</span>, <span class="target">cold feet</span>, <span class="target">broken heart</span> — can be literal or figurative. <span class="accent">Only context tells which.</span>
+            </p>
+
+            <div class="stat-cards">
+                <div class="stat-card"><div class="num">15</div><div class="label">Languages · only EN &amp; PT-BR labeled · 13 zero-shot</div></div>
+                <div class="stat-card"><div class="num">2,663</div><div class="label">Sentences across 749 unique compounds</div></div>
+                <div class="stat-card"><div class="num">4,845</div><div class="label">Images · 5 candidates per sentence</div></div>
+                <div class="stat-card"><div class="num">Top-1</div><div class="label">Accuracy averaged over 15 languages</div></div>
+            </div>
+        </div>
+
+        <div class="task-example reveal" style="--reveal-delay: 300ms;">
+            <div class="ex-label">// example · idiomatic reading</div>
+            <div class="ex-sentence">
+                "We have to recognize that this is not the occasional <span class="target">bad apple</span> but a structural, sector-wide problem."
+            </div>
+            <div class="ex-label">// gold ranking · 5 candidates</div>
+            <div class="img-row">
+                <div class="img-slot gold"><span class="rank">01</span><span class="cat">Strongly<br>figurative</span></div>
+                <div class="img-slot"><span class="rank">02</span><span class="cat">Mildly<br>figurative</span></div>
+                <div class="img-slot"><span class="rank">03</span><span class="cat">Mildly<br>literal</span></div>
+                <div class="img-slot"><span class="rank">04</span><span class="cat">Strongly<br>literal</span></div>
+                <div class="img-slot"><span class="rank">05</span><span class="cat">Distractor</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">02 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 3 — PIPELINE -->
+<section class="slide" id="s3" aria-label="Pipeline">
+    <div class="chrome-top">
+        <span class="section-label">02 · ARCHITECTURE</span>
+        <span>A Four-Phase Frozen Pipeline</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        <span class="mono">translate</span> → <span class="mono">paraphrase</span> → <span class="mono">classify</span> → <span class="accent mono">rank</span>
+    </h2>
+    <p class="slide-subtitle reveal" style="--reveal-delay: 100ms;">
+        Every encoder is frozen. The only trained component is a calibrated logistic regression head.
+    </p>
+
+    <div class="pipeline-frame reveal" style="--reveal-delay: 250ms;">
+        <div class="pipeline-svg-container">
+            <svg viewBox="0 0 1200 280" xmlns="http://www.w3.org/2000/svg" aria-label="Pipeline">
+                <defs>
+                    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#22D3EE"/>
+                    </marker>
+                    <style>
+                        .nbox { fill: #161D2E; stroke: #1F2937; stroke-width: 1.5; }
+                        .nbox-accent { fill: rgba(34, 211, 238, 0.08); stroke: #22D3EE; stroke-width: 1.5; }
+                        .nbox-out { fill: #22D3EE; stroke: #22D3EE; stroke-width: 1.5; }
+                        .nline { stroke: #22D3EE; stroke-width: 1.5; fill: none; }
+                        .nlabel { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #E5E7EB; font-weight: 500; }
+                        .nlabel-muted { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: #64748B; letter-spacing: 0.06em; text-transform: uppercase; }
+                        .nlabel-accent { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #22D3EE; font-weight: 600; }
+                        .nlabel-bg { font-family: 'JetBrains Mono', monospace; font-size: 13px; fill: #0A0E1A; font-weight: 600; }
+                    </style>
+                </defs>
+
+                <text x="215" y="22" text-anchor="middle" class="nlabel-muted">PHASE A — TEXT PREP</text>
+                <text x="560" y="22" text-anchor="middle" class="nlabel-muted">PHASE B — ENCODE</text>
+                <text x="805" y="22" text-anchor="middle" class="nlabel-muted">PHASE C — SENSE + GATE</text>
+                <text x="1070" y="22" text-anchor="middle" class="nlabel-muted">PHASE D — RANK</text>
+
+                <!-- Lane 1: sentence path -->
+                <rect x="20" y="60" width="190" height="50" rx="3" class="nbox"/>
+                <text x="115" y="82" text-anchor="middle" class="nlabel">sentence (15 langs)</text>
+                <text x="115" y="100" text-anchor="middle" class="nlabel-muted">input</text>
+                <path d="M 210 85 L 245 85" class="nline" marker-end="url(#arrow2)"/>
+
+                <rect x="245" y="60" width="170" height="50" rx="3" class="nbox"/>
+                <text x="330" y="82" text-anchor="middle" class="nlabel">NLLB-200</text>
+                <text x="330" y="100" text-anchor="middle" class="nlabel-muted">→ English</text>
+                <path d="M 415 85 L 480 85" class="nline" marker-end="url(#arrow2)"/>
+
+                <rect x="480" y="60" width="160" height="50" rx="3" class="nbox"/>
+                <text x="560" y="82" text-anchor="middle" class="nlabel">BGE-M3</text>
+                <text x="560" y="100" text-anchor="middle" class="nlabel-muted">→ e_sent</text>
+                <path d="M 640 85 L 720 85" class="nline" marker-end="url(#arrow2)"/>
+
+                <rect x="720" y="60" width="170" height="50" rx="3" class="nbox-accent"/>
+                <text x="805" y="82" text-anchor="middle" class="nlabel-accent">Calibrated LR</text>
+                <text x="805" y="100" text-anchor="middle" class="nlabel-muted">→ P(idiomatic)</text>
+
+                <!-- NLLB → Phi-3.5 (vertical) -->
+                <path d="M 330 110 L 330 140" class="nline" marker-end="url(#arrow2)"/>
+
+                <!-- Lane 2: paraphrase path -->
+                <rect x="245" y="140" width="170" height="50" rx="3" class="nbox"/>
+                <text x="330" y="162" text-anchor="middle" class="nlabel">Phi-3.5-mini · 4-bit</text>
+                <text x="330" y="180" text-anchor="middle" class="nlabel-muted">→ paraphrase</text>
+                <path d="M 415 165 L 480 165" class="nline" marker-end="url(#arrow2)"/>
+
+                <rect x="480" y="140" width="160" height="50" rx="3" class="nbox"/>
+                <text x="560" y="162" text-anchor="middle" class="nlabel">BGE-M3</text>
+                <text x="560" y="180" text-anchor="middle" class="nlabel-muted">→ e_para</text>
+                <path d="M 640 165 L 720 165" class="nline" marker-end="url(#arrow2)"/>
+
+                <rect x="720" y="140" width="170" height="50" rx="3" class="nbox-accent"/>
+                <text x="805" y="162" text-anchor="middle" class="nlabel-accent">Query Gate · τ=0.75</text>
+                <text x="805" y="180" text-anchor="middle" class="nlabel-muted">P&gt;τ ? e_para : e_sent</text>
+
+                <!-- LR → Gate vertical (carries P) -->
+                <path d="M 805 110 L 805 140" class="nline" marker-end="url(#arrow2)"/>
+
+                <!-- Lane 3: captions path -->
+                <rect x="245" y="220" width="170" height="40" rx="3" class="nbox" stroke-dasharray="4 3"/>
+                <text x="330" y="245" text-anchor="middle" class="nlabel">5 EN captions</text>
+                <path d="M 415 240 L 480 240" class="nline" marker-end="url(#arrow2)" stroke-dasharray="4 3"/>
+
+                <rect x="480" y="220" width="160" height="40" rx="3" class="nbox"/>
+                <text x="560" y="245" text-anchor="middle" class="nlabel">BGE-M3</text>
+
+                <!-- Caption embeddings → Cosine Ranker -->
+                <path d="M 640 240 L 940 240 L 940 145 L 970 145" class="nline" marker-end="url(#arrow2)"/>
+
+                <!-- Gate → Cosine Ranker (query_emb) -->
+                <path d="M 890 165 L 920 165 L 920 125 L 970 125" class="nline" marker-end="url(#arrow2)"/>
+
+                <!-- Cosine Similarity Ranker -->
+                <rect x="970" y="100" width="200" height="60" rx="3" class="nbox-out"/>
+                <text x="1070" y="125" text-anchor="middle" class="nlabel-bg">Cosine Similarity</text>
+                <text x="1070" y="143" text-anchor="middle" class="nlabel-bg">Ranker</text>
+
+                <!-- Output -->
+                <path d="M 1070 160 L 1070 195" class="nline" marker-end="url(#arrow2)"/>
+                <rect x="970" y="195" width="200" height="40" rx="3" class="nbox-accent"/>
+                <text x="1070" y="219" text-anchor="middle" class="nlabel-accent">ranked order</text>
+            </svg>
+        </div>
+
+        <div class="pipeline-stats">
+            <div class="pipeline-stat">
+                <div class="key">peak vram</div>
+                <div class="val">3.5 <span class="unit">GB</span></div>
+                <div class="desc">Sequential model lifecycle on a 12 GB RTX 4070 Super.</div>
+            </div>
+            <div class="pipeline-stat">
+                <div class="key">classifier acc</div>
+                <div class="val">94.1<span class="unit">%</span></div>
+                <div class="desc">Calibrated LR on EN dev · precision 0.935 · recall 0.956.</div>
+            </div>
+            <div class="pipeline-stat">
+                <div class="key">decision τ</div>
+                <div class="val">0.75</div>
+                <div class="desc">P &gt; τ → paraphrase as query · otherwise → original sentence.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">03 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 4 — DISCOVERY -->
+<section class="slide" id="s4" aria-label="Discovery">
+    <div class="chrome-top">
+        <span class="section-label">03 · PIVOT</span>
+        <span>What Actually Moved the Score</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        Captions outperform <span class="accent">vision–text alignment.</span>
+    </h2>
+
+    <div class="discovery-frame">
+        <div class="discovery-text reveal" style="--reveal-delay: 150ms;">
+            <p class="lead">
+                The original SigLIP2 image–text pipeline scored <span class="accent">0.30</span>. Switching to BGE-M3 text matching against English captions jumped to <span class="accent">0.37</span> — and nothing later beat it.
+            </p>
+            <ul>
+                <li>SigLIP2's <strong>text</strong> encoder is weak on non-English and idiomatic input, even after NLLB translation</li>
+                <li>Image captions are <strong>always in English</strong> — a clean, single-language signal channel</li>
+                <li>BGE-M3 is built for multilingual semantic similarity; query and captions live in the same space</li>
+                <li>Adding SigLIP2 image features back on top of BGE captions <strong>did not help</strong> — text channel dominates</li>
+            </ul>
+        </div>
+
+        <div class="discovery-chart reveal" style="--reveal-delay: 350ms;">
+            <div class="ch-label">// top-1 accuracy · avg 15 langs</div>
+            <div class="bar-chart">
+                <div class="bar-row dim" style="--bar-width: 28%; --bar-delay: 400ms;">
+                    <div class="name">SigLIP2 vanilla</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.28</div>
+                </div>
+                <div class="bar-row dim" style="--bar-width: 30%; --bar-delay: 500ms;">
+                    <div class="name">SigLIP2 + clf</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.30</div>
+                </div>
+                <div class="bar-row" style="--bar-width: 35%; --bar-delay: 600ms;">
+                    <div class="name">BGE captions only</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.35</div>
+                </div>
+                <div class="bar-row best" style="--bar-width: 37%; --bar-delay: 700ms;">
+                    <div class="name">BGE + classifier</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.37</div>
+                </div>
+            </div>
+            <div class="delta-note">
+                Δ = <span class="accent">+0.07 absolute</span> · <span class="accent">+23% relative</span> over the proposed baseline
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">04 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 5 — RESULTS (full bar chart) -->
+<section class="slide" id="s5" aria-label="Results">
+    <div class="chrome-top">
+        <span class="section-label">04 · RESULTS</span>
+        <span>Top-1 Accuracy across 15 Languages</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        Sixteen submissions. <span class="accent">One winner.</span>
+    </h2>
+
+    <div class="results-frame">
+        <div class="results-main-chart reveal" style="--reveal-delay: 200ms;">
+            <div class="ch-header">
+                <div class="ch-title">Strategy comparison · Codabench blind test</div>
+                <div class="ch-meta">// 7 strategies</div>
+            </div>
+            <div class="bar-chart">
+                <div class="bar-row dim" style="--bar-width: 28%; --bar-delay: 250ms;">
+                    <div class="name">SigLIP2 vanilla</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.28</div>
+                </div>
+                <div class="bar-row dim" style="--bar-width: 30%; --bar-delay: 350ms;">
+                    <div class="name">Original proposal</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.30</div>
+                </div>
+                <div class="bar-row dim" style="--bar-width: 33%; --bar-delay: 450ms;">
+                    <div class="name">Pure enriched cap.</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.33</div>
+                </div>
+                <div class="bar-row" style="--bar-width: 35%; --bar-delay: 550ms;">
+                    <div class="name">BGE always-para.</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.35</div>
+                </div>
+                <div class="bar-row" style="--bar-width: 35%; --bar-delay: 600ms;">
+                    <div class="name">Cross-encoder</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.35</div>
+                </div>
+                <div class="bar-row" style="--bar-width: 36%; --bar-delay: 650ms;">
+                    <div class="name">3-channel blend</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.36</div>
+                </div>
+                <div class="bar-row" style="--bar-width: 37%; --bar-delay: 700ms;">
+                    <div class="name">SigLIP + BGE blend</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.37</div>
+                </div>
+                <div class="bar-row best" style="--bar-width: 37%; --bar-delay: 750ms;">
+                    <div class="name">BGE + clf-gated ★</div>
+                    <div class="bar-track"><div class="bar-fill"></div></div>
+                    <div class="value">0.37</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-ref-row reveal" style="--reveal-delay: 850ms;">
+            <div class="ref-card us">
+                <div class="ref-key">Our best<br>(15-lang avg)</div>
+                <div class="ref-val">0.37</div>
+            </div>
+            <div class="ref-card">
+                <div class="ref-key">Human pool<br>(AdMIRe 1.0 ref)</div>
+                <div class="ref-val">0.83</div>
+            </div>
+            <div class="ref-card">
+                <div class="ref-key">Top SemEval team<br>(AdMIRe 1.0 ref)</div>
+                <div class="ref-val">0.93</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">05 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 6 — ABLATIONS (timeline) -->
+<section class="slide" id="s6" aria-label="Ablations">
+    <div class="chrome-top">
+        <span class="section-label">05 · ABLATIONS</span>
+        <span>Six Rounds · The Ceiling Holds</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        Six attempts to break <span class="accent mono">0.37</span>. The ceiling held.
+    </h2>
+
+    <div class="ablation-frame">
+        <div class="ablation-baseline-line reveal" style="--reveal-delay: 100ms;">
+            <span class="lbl">// baseline</span>
+            <span class="dash"></span>
+            <span class="val">0.30</span>
+        </div>
+
+        <div class="ablation-timeline reveal" style="--reveal-delay: 200ms;">
+            <div class="timeline-node up">
+                <span class="dot"></span>
+                <span class="round">R1 · BACKBONE</span>
+                <span class="score">0.37</span>
+                <span class="title">BGE beats SigLIP2</span>
+                <span class="desc">switch from image–text to caption matching</span>
+            </div>
+            <div class="timeline-node flat">
+                <span class="dot"></span>
+                <span class="round">R2 · PARAPHRASER</span>
+                <span class="score">0.37</span>
+                <span class="title">Size irrelevant</span>
+                <span class="desc">Phi-3.5 ≡ Qwen-7B</span>
+            </div>
+            <div class="timeline-node down">
+                <span class="dot"></span>
+                <span class="round">R3 · SIMILARITY</span>
+                <span class="score">0.35</span>
+                <span class="title">Cross-encoder hurts</span>
+                <span class="desc">−0.02 vs bi-encoder</span>
+            </div>
+            <div class="timeline-node flat">
+                <span class="dot"></span>
+                <span class="round">R4 · DATA FIX</span>
+                <span class="score">0.36</span>
+                <span class="title">PT-BR + soft blend</span>
+                <span class="desc">no measurable gain</span>
+            </div>
+            <div class="timeline-node flat">
+                <span class="dot"></span>
+                <span class="round">R5 · THRESHOLD</span>
+                <span class="score">0.37</span>
+                <span class="title">Flat for τ ≥ 0.60</span>
+                <span class="desc">τ insensitivity confirmed</span>
+            </div>
+            <div class="timeline-node down">
+                <span class="dot"></span>
+                <span class="round">R6 · ENRICHMENT</span>
+                <span class="score">0.33</span>
+                <span class="title">Captions hurt</span>
+                <span class="desc">idiom-aware rewrite → −0.04</span>
+            </div>
+        </div>
+
+        <div class="ablation-conclusion reveal" style="--reveal-delay: 800ms;">
+            <span class="label">// conclusion</span>
+            <span class="text"><strong>0.37</strong> is a robust ceiling — the limit is not the model, it is the modality.</span>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">06 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<!-- SLIDE 7 — DIAGNOSIS -->
+<section class="slide" id="s7" aria-label="Diagnosis">
+    <div class="chrome-top">
+        <span class="section-label">06 · DIAGNOSIS</span>
+        <span>Two Ceilings, Compounding</span>
+    </div>
+
+    <h2 class="slide-title reveal" style="--reveal-delay: 0ms;">
+        The <span class="accent mono">0.37</span> ceiling has <span class="accent">more than one source.</span>
+    </h2>
+    <p class="slide-subtitle reveal" style="--reveal-delay: 100ms;">
+        Our submission attributed the ceiling to the visual metaphor gap. A post-hoc audit of NLLB output found a second, upstream cause — translation also destroys idioms before they reach BGE. Concrete: Turkish <span style="color: var(--amber); font-family: var(--mono);">"çürük elma"</span> becomes <span style="color: var(--amber); font-family: var(--mono);">"rotten elmas"</span>.
+    </p>
+
+    <div class="conc-frame">
+        <div class="conc-col reveal" style="--reveal-delay: 250ms;">
+            <h3>WHAT WORKED</h3>
+            <ul>
+                <li><strong>Classifier-gated query selection</strong> — paraphrase for idiomatic, original for literal. <span class="num-tag">+0.07</span> over the proposed pipeline.</li>
+                <li><strong>BGE-M3 over SigLIP2</strong> for the text channel — English caption alignment beats fragmented multilingual vision-text.</li>
+                <li><strong>94.1% sense classification</strong> from a single calibrated LR head on top of frozen BGE-M3.</li>
+                <li><strong>Compact footprint</strong> — 3.5 GB peak VRAM via sequential model loading, no fine-tuning.</li>
+            </ul>
+        </div>
+
+        <div class="conc-col reveal" style="--reveal-delay: 400ms;">
+            <h3>THE 0.37 CEILING</h3>
+            <ul>
+                <li><strong>Translation gap (upstream)</strong> — NLLB-200-distilled-600M corrupts idioms during translation for many of the 13 zero-shot languages. Compounds left untranslated, surrounding context hallucinated. Signal is lost before BGE matching even begins.</li>
+                <li><strong>Modality gap (downstream)</strong> — captions describe what an image <em>shows</em>; idioms describe what it <em>means</em>. Text-text similarity cannot bridge this.</li>
+                <li><strong>Next steps split cleanly:</strong> stronger MT (NLLB-3.3B, LLM-MT) for the upstream gap; VLMs with metaphor priors (GPT-4V, LLaVA-Next) for the downstream one.</li>
+            </ul>
+        </div>
+
+        <div class="thanks reveal" style="--reveal-delay: 600ms;" style2="quieter">
+            <div class="closing" style="font-size: clamp(1rem, 1.4vw, 1.2rem); font-style: normal; font-family: var(--mono); color: var(--text-dim); letter-spacing: 0.06em;">// q&amp;a — code at <span class="accent">YZV405E_2526_100</span></div>
+            <div class="contact">
+                group 100 · yzv405e<br>
+                sözer · öz · kırmızı
+            </div>
+        </div>
+    </div>
+
+    <div class="chrome-bottom">
+        <span>ADMIRE 2.0 · GROUP 100</span>
+        <span class="page-num">07 <span class="total">/ 07</span></span>
+    </div>
+</section>
+
+<div class="progress-bar" id="progressBar" aria-hidden="true"></div>
+<div class="keyboard-hint" id="keyboardHint">
+    <kbd>←</kbd> <kbd>→</kbd> navigate · <kbd>1</kbd>–<kbd>7</kbd> jump · <kbd>P</kbd> print
+</div>
+
+<script>
+(() => {
+    'use strict';
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const progressBar = document.getElementById('progressBar');
+    const hint = document.getElementById('keyboardHint');
+    let current = 0, touchStartX = 0, touchStartY = 0;
+
+    function updateProgress() {
+        progressBar.style.width = (((current + 1) / slides.length) * 100) + '%';
+    }
+    function activate(index) {
+        if (index < 0 || index >= slides.length) return;
+        current = index;
+        slides[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        slides.forEach((s, i) => s.classList.toggle('active', i === index));
+        updateProgress();
+        history.replaceState(null, '', '#s' + (index + 1));
+    }
+    function go(delta) { activate(Math.max(0, Math.min(slides.length - 1, current + delta))); }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.target.matches('input, textarea')) return;
+        const k = e.key;
+        if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'j' || k === 'l') { e.preventDefault(); go(1); }
+        else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'k' || k === 'h') { e.preventDefault(); go(-1); }
+        else if (k === 'Home') { e.preventDefault(); activate(0); }
+        else if (k === 'End') { e.preventDefault(); activate(slides.length - 1); }
+        else if (/^[1-9]$/.test(k)) { const i = parseInt(k, 10) - 1; if (i < slides.length) activate(i); }
+        else if (k === 'p' || k === 'P') { e.preventDefault(); window.print(); }
+        else if (k === '?') { hint.classList.toggle('visible'); }
+    });
+
+    let wheelLock = false;
+    document.addEventListener('wheel', (e) => {
+        if (wheelLock || Math.abs(e.deltaY) < 30) return;
+        wheelLock = true;
+        go(e.deltaY > 0 ? 1 : -1);
+        setTimeout(() => { wheelLock = false; }, 700);
+    }, { passive: true });
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+        else if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx)) go(dy < 0 ? 1 : -1);
+    }, { passive: true });
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const idx = slides.indexOf(entry.target);
+            if (entry.intersectionRatio > 0.5) {
+                slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+                current = idx;
+                updateProgress();
+            }
+        });
+    }, { threshold: [0, 0.5, 0.9] });
+    slides.forEach(s => io.observe(s));
+
+    const hash = window.location.hash.match(/^#s(\d+)$/);
+    if (hash) {
+        const i = parseInt(hash[1], 10) - 1;
+        if (i >= 0 && i < slides.length) setTimeout(() => activate(i), 50);
+        else activate(0);
+    } else activate(0);
+
+    setTimeout(() => hint.classList.add('visible'), 800);
+    setTimeout(() => hint.classList.remove('visible'), 5000);
+})();
+</script>
+</body>
+</html>
